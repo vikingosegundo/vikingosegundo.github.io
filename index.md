@@ -1,8 +1,0 @@
----
-
----
-
-vikingosegundo
-==============
-
-lorem ipsum

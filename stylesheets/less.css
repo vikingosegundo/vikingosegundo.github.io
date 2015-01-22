@@ -54,20 +54,19 @@ h1 {
   float: right;
 }
 #content {
-  clear: both;
   width: 100%;
-  margin-top: auto;
-  margin-bottom: auto;
+  max-width: 1500px;
+  margin: auto;
   zoom: 1;
 }
 #content .post {
-  min-width: 300px;
-  width: 49%;
+  min-width: 320px;
+  width: 50%;
   float: left;
   padding: 1em 0;
 }
 #content .post * {
-  min-width: 300px;
+  min-width: 310px;
   max-width: 600px;
   margin-left: auto ;
   margin-right: auto ;

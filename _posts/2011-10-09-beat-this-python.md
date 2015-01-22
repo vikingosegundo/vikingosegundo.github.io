@@ -14,12 +14,12 @@ One thing I'd love to see in Python, that Objective-C has, is extending a class 
 Every language should have functional tools like pythons List Comprehensions, but Objective-C hasn't.
 
 But since Apple extended Objective-C by introducing Blocks to the underlaying C, it is now possible to have something similar to List Comprehensions — and this article is about how.
-<!--break-->
 When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
-here we go:
+here we go:  
 
 
-{% highlight python linenos%}
+
+{% highlight python %}
 
 def quicksort(alist):
   if len(alist) <= 1: return alist
@@ -29,6 +29,7 @@ def quicksort(alist):
   return quicksort(left) + [pivotelement] + quicksort(right)
 
 {% endhighlight %}
+<!--break-->
 
 
 Compact and beautiful, isn't it?

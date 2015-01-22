@@ -7,7 +7,7 @@
   <meta name="description" content="">
 
   <link href="/stylesheets/more.css" rel="stylesheet">
-  <link href="https://github.com/mojombo/tpw/blob/master/css/syntax.css" rel="stylesheet">
+  <link href="/stylesheets/syntax.css" rel="stylesheet">
 </head>
 
 <body>
@@ -18,6 +18,10 @@
         <p>
           Software Engineer
         </p>
+        <ul>
+          <li><a href="http://github.com/vikingosegundo">github</a></li>
+          <li><a href="http://twitter.com/vikingosegundo">twitter</a></li>
+        </ul>
       </div>
   </div>
 
@@ -36,20 +40,21 @@ There are things, that drive me crazy in one — and things that are missing, fo
 <p>One thing I'd love to see in Python, that Objective-C has, is extending a class — Categories.
 Every language should have functional tools like pythons List Comprehensions, but Objective-C hasn't.</p>
 
-<p>But since Apple extended Objective-C by introducing Blocks to the underlaying C, it is now possible to have something similar to List Comprehensions — and this article is about how.</p>
-
-<!--break-->
-
-
-<p>When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
+<p>But since Apple extended Objective-C by introducing Blocks to the underlaying C, it is now possible to have something similar to List Comprehensions — and this article is about how.
+When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
 here we go:</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="lineno">1</span> <span class="k">def</span> <span class="nf">quicksort</span><span class="p">(</span><span class="n">alist</span><span class="p">):</span>
-<span class="lineno">2</span>   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="n">alist</span>
-<span class="lineno">3</span>     <span class="n">pivotelement</span> <span class="o">=</span> <span class="n">alist</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-<span class="lineno">4</span>         <span class="n">left</span>  <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&lt;</span> <span class="n">pivotelement</span><span class="p">]</span>
-<span class="lineno">5</span>         <span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&gt;=</span> <span class="n">pivotelement</span><span class="p">]</span>
-<span class="lineno">6</span>   <span class="k">return</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">pivotelement</span><span class="p">]</span> <span class="o">+</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code></pre></div>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">quicksort</span><span class="p">(</span><span class="n">alist</span><span class="p">):</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="n">alist</span>
+    <span class="n">pivotelement</span> <span class="o">=</span> <span class="n">alist</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">left</span>  <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&lt;</span> <span class="n">pivotelement</span><span class="p">]</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&gt;=</span> <span class="n">pivotelement</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">pivotelement</span><span class="p">]</span> <span class="o">+</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code></pre></div>
+
+
+
+
+<!--break-->
 
 
 <p>Compact and beautiful, isn't it?</p>

@@ -12,7 +12,7 @@
 * {
   margin: 0;
   padding: 0;
-  font-family: Lato, Helvetica-Neue, sans-serif;
+  font-family: Helvetica-Neue, Arial, sans-serif;
 }
 h1,
 h2,
@@ -61,15 +61,31 @@ h1 {
   zoom: 1;
 }
 #content .post {
-  min-width: 320px;
-  width: 50%;
+  min-width: 300px;
+  width: 49%;
   float: left;
+  padding: 1em 0;
 }
 #content .post * {
-  min-width: 320px;
+  min-width: 300px;
   max-width: 600px;
   margin-left: auto ;
   margin-right: auto ;
+}
+#content .post h2 {
+  line-height: 1.6em;
+  padding: 0 0.5em;
+}
+#content .post h3 {
+  padding: .2em 0 .1em .9em;
+}
+#content .post h4,
+#content .post p {
+  padding: 0 1em;
+  line-height: 1.3em;
+}
+#content .post div {
+  line-height: 1.4em;
 }
 #content:before,
 #content:after {

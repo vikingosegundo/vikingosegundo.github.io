@@ -7,6 +7,7 @@
   <meta name="description" content="">
 
   <link href="/stylesheets/more.css" rel="stylesheet">
+  <link href="https://github.com/mojombo/tpw/blob/master/css/syntax.css" rel="stylesheet">
 </head>
 
 <body>
@@ -37,8 +38,37 @@ Every language should have functional tools like pythons List Comprehensions, bu
 
 <p>But since Apple extended Objective-C by introducing Blocks to the underlaying C, it is now possible to have something similar to List Comprehensions — and this article is about how.</p>
 
+<!--break-->
+
+
 <p>When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
 here we go:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="lineno">1</span> <span class="k">def</span> <span class="nf">quicksort</span><span class="p">(</span><span class="n">alist</span><span class="p">):</span>
+<span class="lineno">2</span>   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="n">alist</span>
+<span class="lineno">3</span>     <span class="n">pivotelement</span> <span class="o">=</span> <span class="n">alist</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+<span class="lineno">4</span>         <span class="n">left</span>  <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&lt;</span> <span class="n">pivotelement</span><span class="p">]</span>
+<span class="lineno">5</span>         <span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&gt;=</span> <span class="n">pivotelement</span><span class="p">]</span>
+<span class="lineno">6</span>   <span class="k">return</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">pivotelement</span><span class="p">]</span> <span class="o">+</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code></pre></div>
+
+
+<p>Compact and beautiful, isn't it?</p>
+
+<p>But wait, there is a down-side in it:</p>
+
+<p>With every recursive call of quicksort() we iterate over alist twice: Once to filter for smaller, once to filter for greater elements. With an average performance of O(n log n) this can be problematic for big lists.</p>
+
+<p>But why do we iterate over alist twice? Can't we just say "…if less than pivot do… else do"?. We can — but not with List Comprehensions. For a very simple reason: They don't feature else-statements. And how could they? What need to be done in a else-clause is not predictable in such a language-level. Would we fill another array always? Do we want to be notified, if a else case is true? There are many cases the language architect cannot predict. One thing that actually could be done is to call a callback or a lambda with the element that raises the else case.</p>
+
+<p>And that is exactly how I did my Objective-C array tools.<br/>
+Have a look at this signature:</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span> <span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>   <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
+                 <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span>
+                    <span class="nf">elsePerformBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">elseBlock</span><span class="p">;</span></code></pre></div>
+
+
+
 
   </div>
   <div class="span4">

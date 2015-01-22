@@ -1,0 +1,10 @@
+name: "vikingosegundo"
+description: ""
+
+url: "vikingosegundo.github.io"
+
+paginate: 20
+
+markdown: rdiscount
+permalink: pretty
+highlighter: pygments

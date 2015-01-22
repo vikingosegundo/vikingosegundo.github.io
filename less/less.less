@@ -1,0 +1,99 @@
+@header-color:white;
+
+.clearfix{
+  zoom:1;
+  &:before, &:after{ content:""; display:table; }
+  &:after{ clear: both; }
+}
+
+.rotation (@angle: 10deg, @x:0%, @y:0%) {
+  transform: rotate(@angle);
+  -moz-transform: rotate(@angle);
+  -ms-transform: rotate(@angle);
+  -o-transform: rotate(@angle);
+  -webkit-transform: rotate(@angle);
+
+  transform-origin: @x @y;
+  -moz-transform-origin: @x @y;
+  -ms-transform-origin: @x @y;
+  -o-transform-origin: @x @y;
+  -webkit-transform-origin: @x @y;
+}
+
+
+.rounded-corners (@radius: 50%) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  border-radius: @radius;
+}
+
+
+* {
+  margin:0;
+  padding:0;
+  font-family:Lato, Helvetica-Neue, sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6{
+  color: rgb(52, 73, 94);
+  font-weight: 100;
+}
+
+h1{
+  font-family: Helvetica, Arial, freesans, clean, sans-serif;
+  font-size: 30px;
+  font-weight: 100;
+  line-height:1.4em;
+}
+
+
+.avatar-image(){
+  background-repeat: no-repeat;
+  background-position: 50%;
+  width:  112px;
+  height: 112px;
+  float:  left;
+
+  @var:   120;
+  background-image: url("https://avatars3.githubusercontent.com/u/74471?v=3&s=@{var}");
+  .rounded-corners(50%);
+}
+
+
+#header{
+  clear:both;
+  height: 112px;
+  width: 320px ;
+  margin-top:1em;
+  margin-bottom:1em;
+  margin-left: auto ;
+  margin-right: auto ;
+  .avatar{
+    .avatar-image;
+  }
+  .personal-details{
+    padding-left:1em;
+    float:right;
+
+  }
+}
+
+#content{
+  clear:both;
+  width:100%;
+  margin-top:auto;
+  margin-bottom:auto;
+  .post{
+    min-width:320px;
+    width:50%;
+    float:left;
+    *{
+
+      min-width:320px;
+      max-width:600px;
+      margin-left: auto ;
+      margin-right: auto ;
+    }
+  }
+  .clearfix;
+}

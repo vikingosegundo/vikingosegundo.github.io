@@ -24,8 +24,8 @@ here we go:
 def quicksort(alist):
   if len(alist) <= 1: return alist
     pivotelement = alist.pop()
-        left  = [element for element in alist if element < pivotelement]
-        right = [element for element in alist if element >= pivotelement]
+    left  = [element for element in alist if element < pivotelement]
+    right = [element for element in alist if element >= pivotelement]
   return quicksort(left) + [pivotelement] + quicksort(right)
 
 {% endhighlight %}

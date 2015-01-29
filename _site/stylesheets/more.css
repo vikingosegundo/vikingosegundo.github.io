@@ -20,6 +20,9 @@ span {
 }
 .highlight {
   background-color: #000;
+  margin: 10px;
+  max-width: 1400px;
+  overflow: scroll;
 }
 .highlight * {
   font-family: "Courier New", monospace, serif;
@@ -27,6 +30,9 @@ span {
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
+}
+.highlight pre {
+  padding: 1em;
 }
 h1,
 h2,

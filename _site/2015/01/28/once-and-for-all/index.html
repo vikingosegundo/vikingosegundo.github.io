@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manuel Meyer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+
+  <link href="/stylesheets/more.css" rel="stylesheet">
+  <link href="/stylesheets/syntax.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="header">
+    <div class="avatar"></div>
+      <div class="personal-details">
+        <h1>Manuel Meyer</h1>
+        <p>
+          Software Engineer
+        </p>
+        <ul>
+          <li><a href="http://github.com/vikingosegundo">github</a></li>
+          <li><a href="http://twitter.com/vikingosegundo">twitter</a></li>
+        </ul>
+      </div>
+  </div>
+
+  <div class="container">
+
+
+<div class="row-fluid">
+  <div class="span8">
+    <p>In iOS and Mac development a plague is spreading around the world.<br/>
+Many view controller become so heavy and obese that we must expect our devices
+to suffer from Type-II Diabetes. This disease is super-contangeous and it's
+ground zero is well known: <a href="http://developer.apple.com">developer.apple.com</a></p>
+
+<h3>What are the symptoms of this syndrome?</h3>
+
+<p>Among others others they are the usual suspects when it come to obisity:</p>
+
+<ul>
+<li>hard to move</li>
+<li>unflexibel</li>
+<li>hard to breed</li>
+<li>no sex appeal</li>
+</ul>
+
+
+<h3>Where and how did the current outbreak start?</h3>
+
+<p>It is not known by now where the gems that transport this disease came to
+existence, but once they reached <a href="http://developer.apple.com">developer.apple.com</a>, it broke loose.<br/>
+Since than it is spreading through the main transport infrastructure like Apple's
+sample codes, mailinglists, stackoverflow.com, Books,…</p>
+
+<!--break-->
+
+
+<h3>How do I know my view controllers are infected?</h3>
+
+<p>Simple answer: If you are asking this ion they probably are already.<br/>
+Infected view controllers are showing symptoms known from ADHD: They want to do
+everything at the same time and are failing in focussing on one thing —
+controlling the view.</p>
+
+<p>If you find your view controller implementing a bunch of protocols, it is
+certain: it is infected</p>
+
+<h3>The Cure</h3>
+
+<p>There are quite a few possible cures, excotic ones like <a href="http://chris.eidhof.nl/posts/intentions.html">Intentions</a>
+(possible by-effect: Massive Storyboards), moving MVC to MVVM, …</p>
+
+<p>The cure that I want to present here is so simple that I classify it as home
+remedy</p>
+
+<h3>Data Source Adapter Pattern</h3>
+
+<p>Following the Single Responsibility Principle a view controller should only do one
+and exactly one thing: Controlling one view (that actually might be formed by
+  a view hierachy). It should <em>not</em> do any of the following: perform network
+  request, parse data, fetch from disk, perform computation as redering and
+  resizing images,…</p>
+
+<p>But how can we achieve this? Simply by applying our knowledge form CS101 —
+patterns!</p>
+
+<p>If it is the single responsibility of a viewcontroller to controll the views, than
+it should be single responsibility of a data source should be to provide the data
+that is about to be displayed — but not to fetch that data from somewhere. That
+would be responsibility of a data fetcher object.</p>
+
+<p>So by now we identified three classes we need:</p>
+
+<ul>
+<li>View Controller for handling views</li>
+<li>Data Source to provide the view controller with data to display</li>
+<li>Data Fetcher to get/render/calculate that data</li>
+</ul>
+
+
+<p>By implementing the adapter pattern for Source and fetcher we are gaining simple
+to use and re-use classes.</p>
+
+<h3>Demo</h3>
+
+<p>I want to demonstrate a simple UITableView that has a twist: every section gets
+it objetcs to display from another source.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+
+<span class="k">@protocol</span> <span class="nc">OFADataFetcher</span> <span class="o">&lt;</span><span class="bp">NSObject</span><span class="o">&gt;</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">fetchSuccess</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="n">success</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchedData:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">obj</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchingDataFaildWithError:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">objects</span><span class="p">;</span>
+<span class="k">@end</span></code></pre></div>
+
+
+<p>The <code>OFADataFetcher</code> protocol describes the contract a data fetcher object must fulfill
+to be usable by the data source.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchSuccess:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="nv">success</span><span class="p">;</span></code></pre></div>
+
+
+<p>This method is called by the data source. The block is a call back mechanism. We could
+ use dlegation instead.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchedData:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">obj</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span><span class="p">;</span></code></pre></div>
+
+
+<p> Called in case of successful fetching.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchingDataFaildWithError:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span><span class="p">;</span></code></pre></div>
+
+
+<p> called if fetching failed.</p>
+
+<p>As I said, I want to have different sources for the different sections of the
+table view, but it can have only one data source. We have to have a tree of sources.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;UIKit/UIKit.h&gt;</span>
+<span class="cp">#import &quot;OFASectionDataSource.h&quot;</span>
+<span class="k">@protocol</span> <span class="nc">OFASectionDataSource</span>;
+
+<span class="k">@interface</span> <span class="nc">OFASectionedTableViewDataSource</span> : <span class="bp">NSObject</span> <span class="o">&lt;</span><span class="bp">UITableViewDataSource</span><span class="p">,</span> <span class="bp">UITableViewDelegate</span><span class="o">&gt;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">weak</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSArray</span>    <span class="o">*</span><span class="n">sectionDataSources</span><span class="p">;</span>
+
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithTableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">addSectionDataSource:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">sectionDataSource</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">selectRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span><span class="p">;</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">selectedObjects</span><span class="p">;</span>
+<span class="k">@end</span></code></pre></div>
+
+
+<hr />
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">addSectionDataSource:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">sectionDataSource</span><span class="p">;</span></code></pre></div>
+
+
+<p>allows us to add a data source that fulfills <code>OFASectionDataSource</code> for every section.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;OFASectionedTableViewDataSource.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">OFASectionedTableViewDataSource</span> <span class="p">()</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">weak</span><span class="p">)</span> <span class="bp">UITableView</span>     <span class="o">*</span><span class="n">tableView</span><span class="p">;</span>
+<span class="k">@property</span><span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">sectionDataSources</span><span class="p">;</span>
+
+<span class="k">@end</span>
+
+<span class="k">@implementation</span> <span class="nc">OFASectionedTableViewDataSource</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithTableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span>
+<span class="p">{</span>
+  <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">_tableView</span>            <span class="o">=</span> <span class="n">tableView</span><span class="p">;</span>
+    <span class="n">_tableView</span><span class="p">.</span><span class="n">dataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">;</span>
+    <span class="n">_tableView</span><span class="p">.</span><span class="n">delegate</span>   <span class="o">=</span> <span class="nb">self</span><span class="p">;</span>
+    <span class="n">_sectionDataSources</span>   <span class="o">=</span> <span class="p">[</span><span class="l">@[]</span> <span class="n">mutableCopy</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">addSectionDataSource:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">sectionDataSource</span>
+<span class="p">{</span>
+  <span class="p">[(</span><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="p">)</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">sectionDataSource</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">selectRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span>
+<span class="p">{</span>
+  <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">selectRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+    <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">selectRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">selectedObjects</span>
+<span class="p">{</span>
+  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="l">@[]</span> <span class="n">mutableCopy</span><span class="p">];</span>
+  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span> <span class="o">&lt;</span> <span class="n">OFASectionDataSource</span> <span class="o">&gt;</span> <span class="n">ds</span><span class="p">,</span> <span class="bp">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">ds</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="n">selectedObjects</span><span class="p">)])</span>
+    <span class="p">[</span><span class="n">array</span> <span class="nl">addObjectsFromArray</span><span class="p">:[</span><span class="n">ds</span> <span class="n">selectedObjects</span><span class="p">]];</span>
+    <span class="p">}];</span>
+    <span class="k">return</span> <span class="n">array</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="nl">numberOfSectionsInTableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span>
+  <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">.</span><span class="n">count</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">numberOfRowsInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">section</span><span class="p">];</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">numberOfRowsInSection</span><span class="p">:</span><span class="n">section</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">titleForHeaderInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">section</span><span class="p">];</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">titleForHeaderInSection</span><span class="p">:</span><span class="n">section</span><span class="p">];</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">titleForFooterInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">section</span><span class="p">];</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">titleForFooterInSection</span><span class="p">:</span><span class="n">section</span><span class="p">];</span>
+  <span class="p">}</span>
+
+
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+    <span class="bp">UITableViewCell</span>       <span class="o">*</span><span class="n">cell</span>             <span class="o">=</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+    <span class="n">cell</span><span class="p">.</span><span class="n">editing</span> <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">cell</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span><span class="p">(</span><span class="n">CGFloat</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">heightForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">heightForRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">heightForRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mf">44.0</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">willDisplayCell</span><span class="p">:(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="n">cell</span> <span class="nl">forRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+  <span class="p">{</span>
+    <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">willDisplayCell</span><span class="p">:</span><span class="nl">forRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+      <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">willDisplayCell</span><span class="p">:</span><span class="n">cell</span> <span class="nl">forRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nl">sectionIndexTitlesForTableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span>
+  <span class="p">{</span>
+    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">sectionTitles</span> <span class="o">=</span> <span class="p">[</span><span class="l">@[]</span> <span class="n">mutableCopy</span><span class="p">];</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span> <span class="o">&lt;</span> <span class="n">OFASectionDataSource</span> <span class="o">&gt;</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">obj</span> <span class="n">sectionIndexTitle</span><span class="p">])</span>
+      <span class="p">[</span><span class="n">sectionTitles</span> <span class="nl">addObject</span><span class="p">:[</span><span class="n">obj</span> <span class="n">sectionIndexTitle</span><span class="p">](</span><span class="n">idx</span><span class="p">)];</span>
+      <span class="p">}];</span>
+      <span class="k">return</span> <span class="n">sectionTitles</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">canMoveRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">canMoveRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">canMoveRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nb">NO</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">moveRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">sourceIndexPath</span> <span class="nl">toIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">destinationIndexPath</span>
+    <span class="p">{</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">sourceIndexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">moveRowAtIndexPath</span><span class="p">:</span><span class="nl">toIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">moveRowAtIndexPath</span><span class="p">:</span><span class="n">sourceIndexPath</span> <span class="nl">toIndexPath</span><span class="p">:</span><span class="n">destinationIndexPath</span><span class="p">];</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">canEditRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">canEditRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">canEditRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nb">NO</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="n">UITableViewCellEditingStyle</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span>
+    <span class="nl">editingStyleForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">sectionDataSource</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">sectionDataSource</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">editingStyleForRowAtIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">sectionDataSource</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">editingStyleForRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">UITableViewCellEditingStyleNone</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">didSelectRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="nl">selectRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="n">ds</span><span class="p">.</span><span class="n">didSelect</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">ds</span><span class="p">.</span><span class="n">didSelect</span><span class="p">([</span><span class="n">ds</span> <span class="n">sectionObjects</span><span class="p">][</span><span class="n">indexPath</span><span class="p">.</span><span class="n">row</span><span class="p">],</span><span class="n">ds</span><span class="p">,</span> <span class="n">indexPath</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">tableView</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">didDeselectRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="nl">selectRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">ds</span><span class="p">.</span><span class="n">didSelect</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">ds</span><span class="p">.</span><span class="n">didSelect</span><span class="p">([</span><span class="n">ds</span> <span class="n">sectionObjects</span><span class="p">][</span><span class="n">indexPath</span><span class="p">.</span><span class="n">row</span><span class="p">],</span><span class="n">ds</span><span class="p">,</span> <span class="n">indexPath</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">tableView</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">shouldIndentWhileEditingRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="k">return</span> <span class="nb">NO</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">targetIndexPathForMoveFromRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">sourceIndexPath</span> <span class="nl">toProposedIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">proposedDestinationIndexPath</span>
+    <span class="p">{</span>
+      <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">ds</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionDataSources</span><span class="p">[</span><span class="n">sourceIndexPath</span><span class="p">.</span><span class="n">section</span><span class="p">];</span>
+      <span class="k">if</span> <span class="p">([</span><span class="n">ds</span> <span class="nl">respondsToSelector</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">tableView</span><span class="p">:</span><span class="nl">targetIndexPathForMoveFromRowAtIndexPath</span><span class="p">:</span><span class="nl">toProposedIndexPath</span><span class="p">:)])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ds</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">targetIndexPathForMoveFromRowAtIndexPath</span><span class="p">:</span><span class="n">sourceIndexPath</span> <span class="nl">toProposedIndexPath</span><span class="p">:</span><span class="n">proposedDestinationIndexPath</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">sourceIndexPath</span><span class="p">;</span>
+
+    <span class="p">}</span>
+
+    <span class="k">@end</span></code></pre></div>
+
+
+<p>So it basically proxies any method call to a section data source chosen by the indexPath's section.</p>
+
+<p>A section data source implements the <code>OFASectionDataSource</code> protocol or might subclass the <code>OFASectionDataSource</code> class.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">@protocol</span> <span class="nc">OFASectionDataSource</span> <span class="o">&lt;</span><span class="bp">UITableViewDataSource</span><span class="p">,</span> <span class="bp">UITableViewDelegate</span><span class="o">&gt;</span>
+<span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setObjectsFromArray</span><span class="p">:(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">array</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">addObjectsFromArray:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">array</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSArray</span>   <span class="o">*</span><span class="n">sectionObjects</span><span class="p">;</span>
+
+
+<span class="k">@optional</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="p">(</span><span class="o">^</span><span class="n">sectionHeaderTitle</span><span class="p">)(</span><span class="bp">NSUInteger</span> <span class="n">section</span><span class="p">);</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="p">(</span><span class="o">^</span><span class="n">sectionFooterTitle</span><span class="p">)(</span><span class="bp">NSUInteger</span> <span class="n">section</span><span class="p">);</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span> <span class="p">(</span><span class="o">^</span><span class="n">sectionIndexTitle</span><span class="p">)(</span><span class="bp">NSUInteger</span> <span class="n">section</span><span class="p">);</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="n">CGFloat</span> <span class="p">(</span><span class="o">^</span><span class="n">cellHeight</span><span class="p">)(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj</span><span class="p">);</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span><span class="k">copy</span><span class="p">)</span> <span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="n">didSelect</span><span class="p">)(</span><span class="kt">id</span> <span class="n">object</span><span class="p">,</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span> <span class="n">dataSource</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">);</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span>                               <span class="nf">dataFetcher</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span>                                    <span class="nf">cellIdentifier</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">,</span> <span class="bp">UITableView</span><span class="o">*</span><span class="p">))</span><span class="nf">cellConfigurator</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">Class</span><span class="p">)</span>                                         <span class="nf">cellClass</span><span class="p">;</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">selectRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span><span class="p">;</span>
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">selectedObjects</span><span class="p">;</span>
+<span class="k">@end</span>
+
+
+<span class="k">@interface</span> <span class="nc">OFASectionDataSource</span> : <span class="bp">NSObject</span> <span class="o">&lt;</span><span class="n">OFASectionDataSource</span><span class="o">&gt;</span>
+<span class="o">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nl">initWithTableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span>
+<span class="nl">cellClass</span><span class="p">:(</span><span class="kt">Class</span><span class="p">)</span><span class="n">cellClass</span>
+<span class="nl">cellIdentifier</span><span class="p">:(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">cellIdentifier</span>
+<span class="nl">dataFetcher</span><span class="p">:(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="n">dataFetcher</span>
+<span class="nl">configureCell</span><span class="p">:(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">))</span><span class="n">configureCell</span><span class="p">;</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">weak</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">;</span>
+
+<span class="k">@end</span></code></pre></div>
+
+
+
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;OFASectionDataSource.h&quot;</span>
+<span class="cp">#import &quot;OFADataFetcher.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">OFASectionDataSource</span> <span class="p">()</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">weak</span><span class="p">)</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span>    <span class="o">*</span><span class="n">cellIdentifier</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="kt">Class</span>     <span class="n">cellClass</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="n">configureCell</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">);</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="n">datafetcher</span><span class="p">;</span>
+<span class="k">@end</span>
+
+<span class="k">@implementation</span> <span class="nc">OFASectionDataSource</span>
+<span class="k">@synthesize</span> <span class="n">sectionHeaderTitle</span><span class="p">;</span>
+<span class="k">@synthesize</span> <span class="n">sectionFooterTitle</span><span class="p">;</span>
+<span class="k">@synthesize</span> <span class="n">sectionIndexTitle</span><span class="p">;</span>
+<span class="k">@synthesize</span> <span class="n">cellHeight</span><span class="p">;</span>
+<span class="k">@synthesize</span> <span class="n">didSelect</span><span class="p">;</span>
+<span class="k">@synthesize</span> <span class="n">sectionObjects</span> <span class="o">=</span> <span class="n">_sectionObjects</span><span class="p">;</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithTableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span>
+<span class="nf">cellClass:</span><span class="p">(</span><span class="kt">Class</span><span class="p">)</span><span class="nv">cellClass</span>
+<span class="nf">cellIdentifier:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">cellIdentifier</span>
+<span class="nf">dataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span>
+<span class="nf">configureCell:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">))</span><span class="nv">configureCell</span><span class="p">;</span>
+
+<span class="p">{</span>
+  <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">_tableView</span>      <span class="o">=</span> <span class="n">tableView</span><span class="p">;</span>
+    <span class="n">_cellIdentifier</span> <span class="o">=</span> <span class="n">cellIdentifier</span><span class="p">;</span>
+    <span class="n">_cellClass</span>      <span class="o">=</span> <span class="n">cellClass</span><span class="p">;</span>
+    <span class="p">[</span><span class="n">tableView</span> <span class="nl">registerClass</span><span class="p">:</span><span class="n">cellClass</span> <span class="nl">forCellReuseIdentifier</span><span class="p">:</span><span class="n">cellIdentifier</span><span class="p">];</span>
+    <span class="n">_datafetcher</span> <span class="o">=</span> <span class="n">dataFetcher</span><span class="p">;</span>
+
+    <span class="k">__weak</span> <span class="k">typeof</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="n">weakSelf</span> <span class="o">=</span> <span class="nb">self</span><span class="p">;</span>
+    <span class="p">[</span><span class="n">dataFetcher</span> <span class="nl">fetchSuccess</span><span class="p">:</span><span class="o">^</span><span class="p">{</span>
+      <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+        <span class="k">typeof</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">strongSelf</span><span class="p">)</span> <span class="p">{</span>
+          <span class="p">[</span><span class="n">strongSelf</span> <span class="nl">setObjectsFromArray</span><span class="p">:[</span><span class="n">strongSelf</span><span class="p">.</span><span class="n">datafetcher</span> <span class="n">objects</span><span class="p">]];</span>
+          <span class="p">[</span><span class="n">strongSelf</span><span class="p">.</span><span class="n">tableView</span> <span class="n">reloadData</span><span class="p">];</span>
+
+        <span class="p">}</span>
+        <span class="p">});</span>
+        <span class="p">}];</span>
+
+        <span class="n">_configureCell</span>  <span class="o">=</span> <span class="n">configureCell</span><span class="p">;</span>
+        <span class="n">_sectionObjects</span> <span class="o">=</span> <span class="l">@[]</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+    <span class="p">}</span>
+
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">,</span> <span class="bp">UITableView</span><span class="o">*</span><span class="p">))</span><span class="n">cellConfigurator</span>
+    <span class="p">{</span>
+      <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">configureCell</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setObjectsFromArray</span><span class="p">:(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">array</span>
+    <span class="p">{</span>
+      <span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span> <span class="o">=</span> <span class="n">array</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">addObjectsFromArray</span><span class="p">:(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">array</span>
+    <span class="p">{</span>
+      <span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span> <span class="nl">arrayByAddingObjectsFromArray</span><span class="p">:</span><span class="n">array</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="nl">numberOfSectionsInTableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span>
+    <span class="p">{</span>
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">numberOfRowsInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+    <span class="p">{</span>
+      <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span><span class="p">.</span><span class="n">count</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span><span class="p">(</span><span class="n">CGFloat</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">heightForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">cellHeight</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">cellHeight</span><span class="p">(</span><span class="n">indexPath</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">row</span><span class="p">]);</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="mf">44.0</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">titleForHeaderInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionHeaderTitle</span><span class="p">)</span>
+          <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionHeaderTitle</span><span class="p">(</span><span class="n">section</span><span class="p">);</span>
+      <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">titleForFooterInSection</span><span class="p">:(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="n">section</span>
+    <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionFooterTitle</span><span class="p">)</span>
+          <span class="k">return</span> <span class="nb">self</span><span class="p">.</span><span class="n">sectionFooterTitle</span><span class="p">(</span><span class="n">section</span><span class="p">);</span>
+      <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span> <span class="o">=</span> <span class="p">[</span><span class="n">tableView</span> <span class="nl">dequeueReusableCellWithIdentifier</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">cellIdentifier</span> <span class="nl">forIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="k">return</span> <span class="n">cell</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">willDisplayCell</span><span class="p">:(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="n">cell</span> <span class="nl">forRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="n">cellConfigurator</span><span class="p">](</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span><span class="p">[</span><span class="n">indexPath</span><span class="p">.</span><span class="n">row</span><span class="p">],</span> <span class="n">cell</span><span class="p">,</span> <span class="n">indexPath</span><span class="p">,</span> <span class="n">tableView</span><span class="p">);</span>
+    <span class="p">}</span>
+
+
+    <span class="o">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">setSectionObjects</span><span class="p">:(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">sectionObjects</span>
+    <span class="p">{</span>
+      <span class="n">_sectionObjects</span> <span class="o">=</span> <span class="n">sectionObjects</span><span class="p">;</span>
+      <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="n">reloadData</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="o">-</span> <span class="p">(</span><span class="n">UITableViewCellEditingStyle</span><span class="p">)</span><span class="nl">tableView</span><span class="p">:(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nl">editingStyleForRowAtIndexPath</span><span class="p">:(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span>
+    <span class="p">{</span>
+      <span class="k">return</span> <span class="n">UITableViewCellEditingStyleNone</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">@end</span></code></pre></div>
+
+
+<p>From an architectual point of view we are done.</p>
+
+<p>But the fun justs starts:</p>
+
+<p>Let's say we want to have a section where I can select 1 to 4 rows.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;OFASectionDataSource.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">OFAMinMaxSelectionSectionDataSource</span> : <span class="nc">OFASectionDataSource</span>
+
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">assign</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSUInteger</span>  <span class="n">min</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">assign</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSUInteger</span>  <span class="n">max</span><span class="p">;</span>
+
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithTableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span>
+                        <span class="nf">cellClass:</span><span class="p">(</span><span class="kt">Class</span><span class="p">)</span><span class="nv">cellClass</span>
+                   <span class="nf">cellIdentifier:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">cellIdentifier</span>
+                 <span class="nf">minimumSelection:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">min</span>
+                 <span class="nf">maximumSelection:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">max</span>
+                      <span class="nf">dataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span>
+                    <span class="nf">configureCell:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">object</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">))</span><span class="nv">configureCell</span><span class="p">;</span>
+<span class="k">@end</span></code></pre></div>
+
+
+
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;OFAMinMaxSelectionSectionDataSource.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">OFAMinMaxSelectionSectionDataSource</span> <span class="p">()</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">assign</span><span class="p">)</span> <span class="bp">NSUInteger</span>          <span class="n">min</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">assign</span><span class="p">)</span> <span class="bp">NSUInteger</span>          <span class="n">max</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSMutableOrderedSet</span> <span class="o">*</span><span class="n">selectedIndexSets</span><span class="p">;</span>
+<span class="k">@end</span>
+
+<span class="k">@implementation</span> <span class="nc">OFAMinMaxSelectionSectionDataSource</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithTableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span>
+<span class="nf">cellClass:</span><span class="p">(</span><span class="kt">Class</span><span class="p">)</span><span class="nv">cellClass</span>
+<span class="nf">cellIdentifier:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">cellIdentifier</span>
+<span class="nf">minimumSelection:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">min</span>
+<span class="nf">maximumSelection:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">max</span>
+<span class="nf">dataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span>
+<span class="nf">configureCell:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">object</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">))</span><span class="nv">configureCell</span>
+<span class="p">{</span>
+  <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="nl">initWithTableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">cellClass</span><span class="p">:</span><span class="n">cellClass</span> <span class="nl">cellIdentifier</span><span class="p">:</span><span class="n">cellIdentifier</span> <span class="nl">dataFetcher</span><span class="p">:</span><span class="n">dataFetcher</span> <span class="nl">configureCell</span><span class="p">:</span><span class="n">configureCell</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">_min</span>               <span class="o">=</span> <span class="n">min</span><span class="p">;</span>
+    <span class="n">_max</span>               <span class="o">=</span> <span class="n">max</span><span class="p">;</span>
+    <span class="n">_selectedIndexSets</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSMutableOrderedSet</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+    <span class="n">tableView</span><span class="p">.</span><span class="n">allowsSelectionDuringEditing</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="bp">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="nf">tableView:</span><span class="p">(</span><span class="bp">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="nv">tableView</span> <span class="nf">cellForRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span>
+<span class="p">{</span>
+  <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="nl">tableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">editing</span>        <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">selectionStyle</span> <span class="o">=</span> <span class="n">UITableViewCellSeparatorStyleNone</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">cell</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">selectRowAtIndexPath:</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="nv">indexPath</span>
+<span class="p">{</span>
+  <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">([</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="nl">containsObject</span><span class="p">:</span><span class="n">indexPath</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="n">count</span><span class="p">]</span> <span class="o">&gt;</span> <span class="nb">self</span><span class="p">.</span><span class="n">min</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="nl">removeObject</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+    <span class="n">cell</span><span class="p">.</span><span class="n">accessoryType</span> <span class="o">=</span> <span class="n">UITableViewCellAccessoryNone</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+      <span class="n">cell</span><span class="p">.</span><span class="n">accessoryType</span> <span class="o">=</span> <span class="n">UITableViewCellAccessoryCheckmark</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">([</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="n">count</span><span class="p">]</span> <span class="o">&gt;</span> <span class="nb">self</span><span class="p">.</span><span class="n">max</span><span class="p">)</span> <span class="p">{</span>
+        <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">firstIndexPath</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="n">firstObject</span><span class="p">];</span>
+        <span class="n">cell</span>               <span class="o">=</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">cellForRowAtIndexPath</span><span class="p">:</span><span class="n">firstIndexPath</span><span class="p">];</span>
+        <span class="n">cell</span><span class="p">.</span><span class="n">accessoryType</span> <span class="o">=</span> <span class="n">UITableViewCellAccessoryNone</span><span class="p">;</span>
+        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="nl">removeObject</span><span class="p">:</span><span class="n">firstIndexPath</span><span class="p">];</span>
+        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">deselectRowAtIndexPath</span><span class="p">:</span><span class="n">firstIndexPath</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span> <span class="nl">deselectRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span> <span class="nl">animated</span><span class="p">:</span><span class="nb">NO</span><span class="p">];</span>
+
+  <span class="p">}</span>
+
+  <span class="o">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">selectedObjects</span>
+  <span class="p">{</span>
+    <span class="bp">NSMutableIndexSet</span> <span class="o">*</span><span class="n">indexSets</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableIndexSet</span> <span class="n">indexSet</span><span class="p">];</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">selectedIndexSets</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
+      <span class="p">[</span><span class="n">indexSets</span> <span class="nl">addIndex</span><span class="p">:</span><span class="n">indexPath</span><span class="p">.</span><span class="n">row</span><span class="p">];</span>
+      <span class="p">}];</span>
+
+      <span class="k">return</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">sectionObjects</span> <span class="nl">objectsAtIndexes</span><span class="p">:</span><span class="n">indexSets</span><span class="p">];</span>
+    <span class="p">}</span>
+
+    <span class="k">@end</span></code></pre></div>
+
+
+<p>And we want the data source to fetch a file from the file system and break up it's lines</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+<span class="p">@</span><span class="n">import</span> <span class="n">OFADelegateDataSource</span><span class="p">;</span>
+
+<span class="k">@interface</span> <span class="nc">FileDataFetcher</span> : <span class="bp">NSObject</span> <span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">,</span> <span class="k">readonly</span><span class="p">)</span> <span class="bp">NSArray</span> <span class="o">*</span><span class="n">objects</span><span class="p">;</span>
+
+<span class="p">-(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithFilePath:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">path</span><span class="p">;</span>
+<span class="k">@end</span></code></pre></div>
+
+
+
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;FileDataFetcher.h&quot;</span>
+
+
+<span class="k">@interface</span> <span class="nc">FileDataFetcher</span> <span class="p">()</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">,</span> <span class="k">readwrite</span><span class="p">)</span> <span class="bp">NSArray</span> <span class="o">*</span><span class="n">objects</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="bp">NSString</span> <span class="o">*</span><span class="n">path</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="kt">void</span><span class="p">(</span><span class="o">^</span><span class="n">success</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">@end</span>
+
+
+<span class="k">@implementation</span> <span class="nc">FileDataFetcher</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithFilePath:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">path</span>
+<span class="p">{</span>
+  <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">_path</span> <span class="o">=</span> <span class="n">path</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchSuccess:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="nv">success</span>
+<span class="p">{</span>
+  <span class="nb">self</span><span class="p">.</span><span class="n">success</span> <span class="o">=</span> <span class="n">success</span><span class="p">;</span>
+  <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">;</span>
+  <span class="bp">NSString</span> <span class="o">*</span><span class="n">string</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithContentsOfFile</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">path</span> <span class="nl">encoding</span><span class="p">:</span><span class="n">NSUTF8StringEncoding</span> <span class="nl">error</span><span class="p">:</span><span class="o">&amp;</span><span class="n">error</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">[</span><span class="nb">self</span> <span class="nl">fetchingDataFaildWithError</span><span class="p">:</span><span class="n">error</span> <span class="nl">onDataFetcher</span><span class="p">:</span><span class="nb">self</span><span class="p">];</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="nl">fetchedData</span><span class="p">:[</span><span class="n">string</span> <span class="nl">componentsSeparatedByString</span><span class="p">:</span><span class="s">@&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">]</span>
+      <span class="nl">onDataFetcher</span><span class="p">:</span><span class="nb">self</span><span class="p">];</span>
+      <span class="nb">self</span><span class="p">.</span><span class="n">success</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">fetchedData</span><span class="p">:(</span><span class="kt">id</span><span class="p">)</span><span class="n">obj</span> <span class="nl">onDataFetcher</span><span class="p">:(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="n">dataFetcher</span>
+  <span class="p">{</span>
+    <span class="nb">self</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="n">obj</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="o">-</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nl">fetchingDataFaildWithError</span><span class="p">:(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="n">error</span> <span class="nl">onDataFetcher</span><span class="p">:(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="n">dataFetcher</span>
+  <span class="p">{</span>
+    <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">error</span>  <span class="n">localizedDescription</span><span class="p">]);</span>
+  <span class="p">}</span>
+
+  <span class="k">@end</span></code></pre></div>
+
+
+<p>And now we stick it together. Note that the data source also implements the delegate,
+but isnt it the responibility of the VC to manage the cells? Yes it is. Just for simplicity
+I let my data source act a proxy so that I can send back row's index path and the
+corresponding object the VC  by using a block</p>
+
+<p>In VC's <code>viewDidLoad:</code></p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">FileDataFetcher</span> <span class="o">*</span><span class="n">lineDataFetcher</span> <span class="o">=</span> <span class="p">[[</span><span class="n">FileDataFetcher</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFilePath</span><span class="p">:[[</span><span class="bp">NSBundle</span> <span class="n">mainBundle</span><span class="p">]</span> <span class="nl">pathForResource</span><span class="p">:</span><span class="s">@&quot;File2&quot;</span> <span class="nl">ofType</span><span class="p">:</span><span class="s">@&quot;txt&quot;</span><span class="p">]];</span>
+
+
+<span class="bp">UIFont</span> <span class="o">*</span><span class="n">font</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIFont</span> <span class="nl">systemFontOfSize</span><span class="p">:</span><span class="mi">20</span><span class="p">];</span>
+<span class="n">OFASectionDataSource</span> <span class="o">*</span><span class="n">lineDataSource</span> <span class="o">=</span> <span class="p">[[</span><span class="n">OFAMinMaxSelectionSectionDataSource</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTableView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span>
+                                                                                            <span class="nl">cellClass</span><span class="p">:[</span><span class="bp">UITableViewCell</span> <span class="k">class</span><span class="p">]</span>
+                                                                                      <span class="nl">cellIdentifier</span><span class="p">:</span><span class="s">@&quot;line&quot;</span>
+                                                                                    <span class="nl">minimumSelection</span><span class="p">:</span><span class="mi">1</span>
+                                                                                    <span class="nl">maximumSelection</span><span class="p">:</span><span class="mi">2</span>
+                                                                                         <span class="nl">dataFetcher</span><span class="p">:</span><span class="n">lineDataFetcher</span>
+                                                                                       <span class="nl">configureCell</span><span class="p">:</span>
+<span class="o">^</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">object</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">textLabel</span><span class="p">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">object</span><span class="p">;</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">textLabel</span><span class="p">.</span><span class="n">font</span><span class="o">=</span> <span class="n">font</span><span class="p">;</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">textLabel</span><span class="p">.</span><span class="n">numberOfLines</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">textLabel</span><span class="p">.</span><span class="n">lineBreakMode</span> <span class="o">=</span> <span class="n">NSLineBreakByWordWrapping</span><span class="p">;</span>
+  <span class="p">[</span><span class="n">cell</span><span class="p">.</span><span class="n">textLabel</span> <span class="n">sizeToFit</span><span class="p">];</span>
+  <span class="p">}];</span>
+
+
+  <span class="nb">self</span><span class="p">.</span><span class="n">dataSource</span> <span class="o">=</span> <span class="p">({</span>
+    <span class="n">OFASectionedTableViewDataSource</span> <span class="o">*</span><span class="n">ds</span><span class="o">=</span> <span class="p">[[</span><span class="n">OFASectionedTableViewDataSource</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTableView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span><span class="p">];</span>
+    <span class="p">[</span><span class="n">ds</span> <span class="nl">addSectionDataSource</span><span class="p">:</span><span class="n">lineDataSource</span><span class="p">];</span>
+    <span class="n">ds</span><span class="p">;</span>
+  <span class="p">});</span></code></pre></div>
+
+
+<p>That's all.</p>
+
+<p>How about exchanging the text with photos form flickr?</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;FlickerPhotoFetcher.h&quot;</span>
+<span class="cp">#import &quot;FlickrKit.h&quot;</span>
+
+<span class="cp">#import &quot;flickerCredentials.h&quot;</span>
+
+<span class="k">@interface</span> <span class="nc">FlickerPhotoFetcher</span> <span class="p">()</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">strong</span><span class="p">)</span> <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">photos</span><span class="p">;</span>
+<span class="k">@property</span> <span class="p">(</span><span class="k">nonatomic</span><span class="p">,</span> <span class="k">copy</span><span class="p">)</span> <span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="n">success</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">@end</span>
+
+<span class="k">@implementation</span> <span class="nc">FlickerPhotoFetcher</span>
+
+<span class="p">+(</span><span class="kt">void</span><span class="p">)</span><span class="nf">initialize</span>
+<span class="p">{</span>
+  <span class="p">[[</span><span class="n">FlickrKit</span> <span class="n">sharedFlickrKit</span><span class="p">]</span> <span class="nl">initializeWithAPIKey</span><span class="p">:</span><span class="n">FLICKR_KEY</span>
+  <span class="nl">sharedSecret</span><span class="p">:</span><span class="n">FLICKR_SECRET</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">init</span>
+<span class="p">{</span>
+  <span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+  <span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">self</span><span class="p">.</span><span class="n">photos</span> <span class="o">=</span> <span class="p">[</span><span class="l">@[]</span> <span class="n">mutableCopy</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">objects</span>
+<span class="p">{</span>
+  <span class="k">@synchronized</span><span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">photos</span><span class="p">){</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">photos</span> <span class="k">copy</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchSuccess:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">void</span><span class="p">))</span><span class="nv">success</span>
+<span class="p">{</span>
+  <span class="nb">self</span><span class="p">.</span><span class="n">success</span> <span class="o">=</span> <span class="n">success</span><span class="p">;</span>
+  <span class="n">FlickrKit</span> <span class="o">*</span><span class="n">fk</span> <span class="o">=</span> <span class="p">[</span><span class="n">FlickrKit</span> <span class="n">sharedFlickrKit</span><span class="p">];</span>
+  <span class="n">FKFlickrInterestingnessGetList</span> <span class="o">*</span><span class="n">interesting</span> <span class="o">=</span> <span class="p">[[</span><span class="n">FKFlickrInterestingnessGetList</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">fk</span> <span class="nl">call</span><span class="p">:</span><span class="n">interesting</span> <span class="nl">completion</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">response</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Note this is not the main thread!</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="p">{</span>
+      <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">photoURLs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
+      <span class="k">for</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">photoData</span> <span class="k">in</span> <span class="p">[</span><span class="n">response</span> <span class="nl">valueForKeyPath</span><span class="p">:</span><span class="s">@&quot;photos.photo&quot;</span><span class="p">])</span> <span class="p">{</span>
+        <span class="bp">NSURL</span> <span class="o">*</span><span class="n">url</span> <span class="o">=</span> <span class="p">[</span><span class="n">fk</span> <span class="nl">photoURLForSize</span><span class="p">:</span> <span class="p">[[</span><span class="bp">UIScreen</span> <span class="n">mainScreen</span><span class="p">]</span> <span class="n">scale</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">?</span> <span class="nl">FKPhotoSizeMedium640</span> <span class="p">:</span> <span class="n">FKPhotoSizeSmall320</span> <span class="nl">fromPhotoDictionary</span><span class="p">:</span><span class="n">photoData</span><span class="p">];</span>
+        <span class="p">[</span><span class="n">photoURLs</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">url</span><span class="p">];</span>
+      <span class="p">}</span>
+      <span class="p">[</span><span class="nb">self</span> <span class="nl">fetchPhotos</span><span class="p">:</span><span class="n">photoURLs</span><span class="p">];</span>
+    <span class="p">}</span>
+  <span class="p">}];</span>
+
+<span class="p">}</span>
+
+<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchingDataFaildWithError:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span>
+<span class="p">{</span>
+
+<span class="p">}</span>
+
+<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchedData:</span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="nv">obj</span> <span class="nf">onDataFetcher:</span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">OFADataFetcher</span><span class="o">&gt;</span><span class="p">)</span><span class="nv">dataFetcher</span>
+<span class="p">{</span>
+  <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+    <span class="nb">self</span><span class="p">.</span><span class="n">success</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+
+<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">fetchPhotos:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">photpURLs</span>
+<span class="p">{</span>
+  <span class="bp">NSOperationQueue</span> <span class="o">*</span><span class="n">queue</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSOperationQueue</span> <span class="n">alloc</span><span class="p">]</span> <span class="n">init</span><span class="p">];</span>
+  <span class="k">__weak</span> <span class="k">typeof</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="n">weakSelf</span> <span class="o">=</span> <span class="nb">self</span><span class="p">;</span>
+
+  <span class="p">[[</span><span class="n">photpURLs</span> <span class="nl">subarrayWithRange</span><span class="p">:</span><span class="n">NSMakeRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSURL</span> <span class="o">*</span><span class="n">url</span><span class="p">,</span> <span class="bp">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">[</span><span class="n">queue</span> <span class="nl">addOperationWithBlock</span><span class="p">:</span> <span class="o">^</span> <span class="p">{</span>
+      <span class="k">typeof</span><span class="p">(</span><span class="n">weakSelf</span><span class="p">)</span> <span class="n">strongSelf</span> <span class="o">=</span> <span class="n">weakSelf</span><span class="p">;</span>
+      <span class="k">if</span><span class="p">(</span><span class="n">strongSelf</span><span class="p">){</span>
+        <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+        <span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSData</span> <span class="nl">dataWithContentsOfURL</span><span class="p">:</span><span class="n">url</span> <span class="nl">options</span><span class="p">:</span><span class="mi">0</span> <span class="nl">error</span><span class="p">:</span><span class="o">&amp;</span><span class="n">error</span><span class="p">];</span>
+        <span class="bp">UIImage</span> <span class="o">*</span><span class="n">image</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">){</span>
+          <span class="n">image</span> <span class="o">=</span> <span class="p">[</span><span class="bp">UIImage</span> <span class="nl">imageWithData</span><span class="p">:</span><span class="n">data</span><span class="p">];</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">@synchronized</span><span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">photos</span><span class="p">){</span>
+            <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">photos</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">image</span><span class="p">];</span>
+            <span class="p">[</span><span class="nb">self</span> <span class="nl">fetchedData</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">photos</span> <span class="nl">onDataFetcher</span><span class="p">:</span><span class="nb">self</span><span class="p">];</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+
+      <span class="p">}</span>
+    <span class="p">}];</span>
+  <span class="p">}];</span>
+
+<span class="p">}</span>
+
+<span class="k">@end</span></code></pre></div>
+
+
+
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">OFASectionDataSource</span> <span class="o">*</span><span class="n">flickrSectionDataSource</span> <span class="o">=</span> <span class="p">[[</span><span class="n">OFAMinMaxSelectionSectionDataSource</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTableView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">tableView</span>
+                                                                                                     <span class="nl">cellClass</span><span class="p">:[</span><span class="bp">UITableViewCell</span> <span class="k">class</span><span class="p">]</span>
+                                                                                                <span class="nl">cellIdentifier</span><span class="p">:</span><span class="s">@&quot;thirdSectionCell&quot;</span>
+                                                                                              <span class="nl">minimumSelection</span><span class="p">:</span><span class="mi">1</span>
+                                                                                              <span class="nl">maximumSelection</span><span class="p">:</span><span class="mi">2</span>
+                                                                                                   <span class="nl">dataFetcher</span><span class="p">:</span><span class="n">flickrPhotoFetcher</span>
+                                                                                                 <span class="nl">configureCell</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">UIImage</span> <span class="o">*</span><span class="n">image</span><span class="p">,</span> <span class="bp">UITableViewCell</span> <span class="o">*</span><span class="n">cell</span><span class="p">,</span> <span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">indexPath</span><span class="p">,</span> <span class="bp">UITableView</span> <span class="o">*</span><span class="n">tableView</span><span class="p">){</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">backgroundView</span>  <span class="o">=</span> <span class="p">({</span>
+    <span class="bp">UIImageView</span> <span class="o">*</span><span class="n">iv</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIImageView</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithFrame</span><span class="p">:</span><span class="n">cell</span><span class="p">.</span><span class="n">bounds</span><span class="p">];</span>
+    <span class="n">iv</span><span class="p">.</span><span class="n">image</span> <span class="o">=</span><span class="n">image</span><span class="p">;</span>
+    <span class="n">iv</span><span class="p">.</span><span class="n">contentMode</span> <span class="o">=</span> <span class="n">UIViewContentModeScaleAspectFill</span><span class="p">;</span>
+    <span class="n">iv</span><span class="p">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">cell</span><span class="p">.</span><span class="n">center</span><span class="p">;</span>
+    <span class="n">iv</span><span class="p">;</span>
+  <span class="p">});</span>
+  <span class="n">cell</span><span class="p">.</span><span class="n">clipsToBounds</span> <span class="o">=</span> <span class="nb">YES</span><span class="p">;</span>
+<span class="p">}];</span>
+<span class="p">[</span><span class="n">flickrSectionDataSource</span> <span class="nl">setSectionHeaderTitle</span><span class="p">:</span><span class="o">^</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">(</span><span class="bp">NSUInteger</span> <span class="n">section</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="s">@&quot;Flickr&quot;</span><span class="p">;</span>
+<span class="p">}];</span>
+
+<span class="n">flickrSectionDataSource</span><span class="p">.</span><span class="n">cellHeight</span> <span class="o">=</span> <span class="o">^</span><span class="p">(</span><span class="bp">NSIndexPath</span> <span class="o">*</span><span class="n">ip</span><span class="p">,</span> <span class="bp">UIImage</span> <span class="o">*</span><span class="n">obj</span><span class="p">){</span>
+  <span class="n">CGFloat</span> <span class="n">factor</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span> <span class="o">/</span> <span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">frame</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">obj</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span> <span class="o">/</span> <span class="n">factor</span><span class="p">;</span>
+<span class="p">};</span></code></pre></div>
+
+
+
+
+  </div>
+  <div class="span4">
+    <h3>About Me</h3>
+
+<p>Donec libero libero, bibendum non condimentum ac, ullamcorper at sapien.\
+  Duis feugiat urna vel justo cursus facilisis. Vivamus ligula dui, convalli\
+  s a varius vitae, facilisis eget magna.</p>
+
+  <ul>
+    
+    <li><a href="/2015/01/28/once-and-for-all/">Once and For All — Data Source Adapter Pattern</a></li>
+    
+    <li><a href="/2011/10/09/beat-this-python/">Beat This, Python!</a></li>
+    
+  </ul>
+
+  </div>
+</div>
+
+</div>
+</body>
+</html>
+

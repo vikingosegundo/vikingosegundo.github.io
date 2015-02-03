@@ -1,6 +1,6 @@
 ---
 title: Beat This, Python!
-layout: default
+layout: posts
 ---
 
 **I love Python. I love Objective-C.**

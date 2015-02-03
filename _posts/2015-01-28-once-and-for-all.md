@@ -1,6 +1,6 @@
 ---
 title: Once and For All — Data Source Adapter Pattern
-layout: default
+layout: posts
 ---
 
 In iOS and Mac development a plague is spreading around the world.  

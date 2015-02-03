@@ -113,6 +113,7 @@ section {
 }
 body {
   line-height: 1;
+  padding: 2em;
 }
 ol,
 ul {
@@ -193,11 +194,17 @@ h1 {
   padding-left: 1em;
   float: right;
 }
+#header .personal-details li {
+  display: inline;
+}
+#container {
+  max-width: 1200px;
+  margin: 1em 1em;
+}
 #content {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1200px;
   margin: auto;
-  zoom: 1;
 }
 #content h1,
 #content h2,
@@ -205,9 +212,13 @@ h1 {
 #content h4 h5,
 #content h6 {
   padding-top: 1em;
+  color: #34495e;
 }
 #content p {
   margin: 1em 0 0 0;
+}
+#content p a {
+  color: #34495e;
 }
 #content ul {
   padding-left: 2em;
@@ -217,16 +228,14 @@ h1 {
   min-width: 320px;
   width: 50%;
   float: left;
-  padding: 1em 0;
-}
-#content .post * {
-  min-width: 310px;
-  max-width: 600px;
-  margin-left: auto ;
-  margin-right: auto ;
 }
 #content .post h2 {
   line-height: 1.6em;
+  font-size: 125%;
+}
+#content .post h2 a {
+  text-decoration: none;
+  color: #34495e;
 }
 #content .post h4,
 #content .post p {
@@ -235,11 +244,36 @@ h1 {
 #content .post div {
   line-height: 1.4em;
 }
-#content:before,
-#content:after {
+#content .post p {
+  padding: 0 1em;
+}
+#content .post_detail {
+  min-width: 320px;
+  max-width: 900px;
+  zoom: 1;
+}
+#content .post_detail:before,
+#content .post_detail:after {
   content: "";
   display: table;
 }
-#content:after {
+#content .post_detail:after {
   clear: both;
+}
+#footer {
+  clear: both;
+  vertical-align: middle;
+  margin: auto;
+  padding: 2em 0;
+}
+#footer .pagination {
+  margin-left: auto;
+  margin-right: auto;
+  width: 200px;
+}
+#footer .pagination ul {
+  list-style: none;
+}
+#footer .pagination ul li {
+  display: inline;
 }

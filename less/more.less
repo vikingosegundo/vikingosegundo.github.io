@@ -55,6 +55,7 @@ footer, header, hgroup, menu, nav, section {
 }
 body {
   line-height: 1;
+  padding:2em;
 }
 ol, ul {
   list-style: none;
@@ -139,23 +140,35 @@ h1{
   .personal-details{
     padding-left:1em;
     float:right;
-
+    li{
+      display: inline;
+      
+    }
   }
 
+}
+
+#container{
+  max-width:1200px;
+  margin:1em 1em;
 }
 
 #content{
 
   width:100%;
-  max-width:1500px;
+  max-width:1200px;
   // margin-top:auto;
   margin:auto;
 
   h1, h2, h3, h4 h5, h6{
     padding-top: 1em;
+    color: #34495e;
   }
   p {
     margin: 1em 0 0 0;
+    a{
+      color: #34495e;
+    }
   }
   ul {
 
@@ -168,32 +181,51 @@ h1{
   .post{
     min-width:320px;
     width:50%;
-    //width:49%;
     float:left;
-    padding:1em 0;
-    *{
-
-      min-width:310px;
-      max-width:600px;
-      margin-left: auto ;
-      margin-right: auto ;
-
-    }
-
-
-
     h2{
       line-height:1.6em;
+      font-size:125%;
+      a {
+        text-decoration:none;
+        color: #34495e;
+      }
     }
-
 
     h4, p{
       line-height:1.3em;
     }
-    div{
-      line-height:1.4em;
 
+    div {
+      line-height:1.4em;
+    }
+
+    p {
+      padding: 0 1em;
     }
   }
-  .clearfix;
+  .post_detail{
+
+    min-width:320px;
+    max-width:900px;
+    .clearfix;
+  }
+
+}
+
+#footer{
+  clear:both;
+  vertical-align: middle;
+  margin:auto;
+  padding: 2em 0;
+  .pagination{
+    margin-left: auto;
+    margin-right: auto;
+    width:200px;
+    ul {
+      list-style: none;
+      li {
+        display: inline;
+      }
+    }
+  }
 }

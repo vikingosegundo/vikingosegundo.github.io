@@ -1,5 +1,5 @@
 @header-color:white;
-
+@linkcolor: #34495e;
 .clearfix{
   zoom:1;
   &:before, &:after{ content:""; display:table; }
@@ -142,6 +142,10 @@ h1{
     float:right;
     li{
       display: inline;
+      a{
+        color:@linkcolor;
+        text-decoration:none;
+      }
 
     }
   }
@@ -188,7 +192,7 @@ h1{
       font-size:125%;
       a {
         text-decoration:none;
-        color: #34495e;
+        color: @linkcolor;
       }
     }
 

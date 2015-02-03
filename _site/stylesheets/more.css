@@ -198,6 +198,10 @@ h1 {
 #header .personal-details li {
   display: inline;
 }
+#header .personal-details li a {
+  color: #34495e;
+  text-decoration: none;
+}
 #header:before,
 #header:after {
   content: "";

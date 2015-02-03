@@ -12,5 +12,6 @@ highlighter: pygments
 gems: ['jekyll-less']
 
 footer-links:
+  stackoverflow: 106435/vikingosegundo
   github: vikingosegundo
   twitter: vikingosegundo

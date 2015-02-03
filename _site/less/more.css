@@ -229,7 +229,8 @@ h1 {
   color: #34495e;
 }
 #content p {
-  margin: 1em 0 0 0;
+  vertical-align: middle;
+  margin: auto;
 }
 #content p a {
   color: #34495e;
@@ -241,6 +242,7 @@ h1 {
 #content .post {
   min-width: 320px;
   width: 50%;
+  margin: auto;
   float: left;
 }
 #content .post h2 {

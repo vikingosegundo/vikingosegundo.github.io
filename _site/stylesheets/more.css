@@ -215,7 +215,7 @@ h1 {
   margin: 1em 1em;
 }
 #content {
-  width: 100%;
+  min-width: 320px;
   max-width: 1200px;
   margin: auto;
   zoom: 1;

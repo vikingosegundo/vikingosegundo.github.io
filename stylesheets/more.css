@@ -180,6 +180,10 @@ h1 {
   margin-right: auto ;
   zoom: 1;
 }
+
+#header a {
+  text-decoration:none;
+}
 #header .avatar {
   background-repeat: no-repeat;
   background-position: 50%;

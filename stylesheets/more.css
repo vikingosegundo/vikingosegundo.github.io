@@ -10,12 +10,45 @@
   clear: both;
 }
 html,
-body,
+body {
+  border: 0;
+  font-family: "Helvetica-Neue", "Helvetica", Arial, sans-serif;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
 div,
 span,
-applet,
 object,
 iframe,
+img,
+table,
+caption,
+thead,
+tbody,
+tfoot,
+tr,
+tr,
+td,
+article,
+aside,
+canvas,
+details,
+figure,
+hgroup,
+menu,
+nav,
+footer,
+header,
+section,
+summary,
+mark,
+audio,
+video {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
 h1,
 h2,
 h3,
@@ -27,31 +60,22 @@ blockquote,
 pre,
 a,
 abbr,
-acronym,
 address,
-big,
-cite,
+cit,
 code,
 del,
 dfn,
 em,
-img,
 ins,
-kbd,
 q,
-s,
 samp,
 small,
-strike,
 strong,
 sub,
 sup,
-tt,
-var,
 b,
-u,
 i,
-center,
+hr,
 dl,
 dt,
 dd,
@@ -59,80 +83,44 @@ ol,
 ul,
 li,
 fieldset,
-form,
-label,
 legend,
-table,
-caption,
-tbody,
-tfoot,
-thead,
-tr,
-th,
-td,
+label {
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  margin: 0;
+  padding: 0;
+}
 article,
 aside,
 canvas,
-details,
-embed,
 figure,
+figure img,
 figcaption,
+hgroup,
 footer,
 header,
-hgroup,
-menu,
 nav,
-output,
-ruby,
 section,
-summary,
-time,
-mark,
 audio,
 video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-menu,
-nav,
-section {
   display: block;
 }
-body {
-  line-height: 1;
-  padding: 2em;
-}
-ol,
-ul {
-  list-style: none;
-}
-blockquote,
-q {
-  quotes: none;
-}
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-  content: '';
-  content: none;
-}
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
   border-spacing: 0;
+}
+table caption,
+table th,
+table td {
+  text-align: left;
+  vertical-align: middle;
+}
+a img {
+  border: 0;
+}
+:focus {
+  outline: 0;
 }
 div,
 p,
@@ -180,9 +168,8 @@ h1 {
   margin-right: auto ;
   zoom: 1;
 }
-
 #header a {
-  text-decoration:none;
+  text-decoration: none;
 }
 #header .avatar {
   background-repeat: no-repeat;
@@ -219,7 +206,7 @@ h1 {
   margin: 1em 1em;
 }
 #content {
-  min-width: 320px;
+  width: 100%;
   max-width: 1200px;
   margin: auto;
   zoom: 1;
@@ -233,7 +220,8 @@ h1 {
   color: #34495e;
 }
 #content p {
-  margin: 1em 0 0 0;
+  vertical-align: middle;
+  margin: auto;
 }
 #content p a {
   color: #34495e;
@@ -245,6 +233,7 @@ h1 {
 #content .post {
   min-width: 320px;
   width: 50%;
+  margin: auto;
   float: left;
 }
 #content .post h2 {

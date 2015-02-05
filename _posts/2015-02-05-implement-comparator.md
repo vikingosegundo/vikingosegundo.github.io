@@ -17,7 +17,7 @@ in response to this [Stackoverflow question][1]
 
 ### NSArray+FunctionalTool
 
-```Objective-C
+{% highlight objc %}
 
 #import <Foundation/Foundation.h>
 
@@ -57,9 +57,10 @@ typedef id (^VSTestBlock)(id element);
 @end
 
 
-```
+{% endhighlight %}
 
-```Objective-C
+
+{% highlight objc %}
 //
 //  NSArray+FuntionalTools.m
 //  arraytools
@@ -205,13 +206,14 @@ typedef id (^VSTestBlock)(id element);
 
 @end
 
-```
+{% endhighlight %}
+
 
 
 
 ### NSArray+RandomUtils
 
-```Objective-C
+{% highlight objc %}
 
 @interface NSArray (RandomUtils)
 -(id)randomElement;
@@ -221,9 +223,10 @@ typedef id (^VSTestBlock)(id element);
 @interface NSMutableArray (RandomUtils)
 -(void)shuffle;
 @end
-```
+{% endhighlight %}
 
-```Objective-C
+
+{% highlight objc %}
 #import "NSArray+RandomUtils.h"
 
 @implementation NSArray (RandomUtils)
@@ -236,11 +239,12 @@ typedef id (^VSTestBlock)(id element);
 }
 
 @end
-```
+{% endhighlight %}
+
 
 
 ### Example Usage
-```Objective-C
+{% highlight objc %}
 
 //
 //  main.m
@@ -294,4 +298,4 @@ int main(int argc, const char * argv[]) {
     }
     return 0;
 }
-```
+{% endhighlight %}

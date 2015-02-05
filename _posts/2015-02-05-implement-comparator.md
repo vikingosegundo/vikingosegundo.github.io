@@ -13,6 +13,7 @@ in response to this [Stackoverflow question][1]
 
 [1]: http://stackoverflow.com/questions/28348022/how-is-the-sortedarrayusingcomparator-method-written-in-objective-c/28349545#28349545
 
+<!--break-->
 
 ### NSArray+FunctionalTool
 

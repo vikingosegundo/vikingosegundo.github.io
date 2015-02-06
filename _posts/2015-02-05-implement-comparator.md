@@ -63,9 +63,9 @@ This implements a quicksort algorithm that uses a comparator block to determin t
 -(NSArray *) quicksortUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
 {
     NSArray *array = [self copy];
-
-    if ([array count]<2) return [array copy];
-
+    if ([array count]<2) {
+      return [array copy];
+    }
     id pivot = [array randomElement];
     NSMutableArray *array2= [NSMutableArray array];
 

@@ -89,9 +89,9 @@
 <span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span> <span class="nf">quicksortUsingComparator:</span><span class="p">(</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">))</span><span class="nv">comparator</span>
 <span class="p">{</span>
     <span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span> <span class="k">copy</span><span class="p">];</span>
-
-    <span class="k">if</span> <span class="p">([</span><span class="n">array</span> <span class="n">count</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">)</span> <span class="k">return</span> <span class="p">[</span><span class="n">array</span> <span class="k">copy</span><span class="p">];</span>
-
+    <span class="k">if</span> <span class="p">([</span><span class="n">array</span> <span class="n">count</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="p">[</span><span class="n">array</span> <span class="k">copy</span><span class="p">];</span>
+    <span class="p">}</span>
     <span class="kt">id</span> <span class="n">pivot</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="n">randomElement</span><span class="p">];</span>
     <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array2</span><span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
 

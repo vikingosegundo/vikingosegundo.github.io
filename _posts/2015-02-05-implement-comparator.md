@@ -306,6 +306,6 @@ typedef id (^VSTestBlock)(id element);
 
 ----
 
-[Download gist][1]
+[Download gist][gist]
 
-[1]: https://gist.github.com/vikingosegundo/7894ea6ab9170f7fc10e
+[gist]: https://gist.github.com/vikingosegundo/7894ea6ab9170f7fc10e

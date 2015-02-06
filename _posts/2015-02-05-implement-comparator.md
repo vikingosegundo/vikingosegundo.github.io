@@ -13,7 +13,69 @@ in response to this [Stackoverflow question][1]
 
 [1]: http://stackoverflow.com/questions/28348022/how-is-the-sortedarrayusingcomparator-method-written-in-objective-c/28349545#28349545
 
+
+
+### Example Usage
+
+#import <Foundation/Foundation.h>
+#import "NSArray+Comparator"
+
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        NSArray *array = @[@4, @9, @2, @1, @7];
+
+        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+            return  [obj1 compare:obj2];
+        }];
+    }
+    return 0;
+}
+{% endhighlight %}
+
 <!--break-->
+
+This implements a quicksort algorithm that uses a comparator block to determin the ordering.
+
+{% highlight objc %}
+
+### NSArray+Comparator
+
+#import "NSArray+FunctionalTools.h"
+#import "NSArray+RandomUtils.h"
+
+@interface NSArray (Comparator)
+-(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator;
+@end
+{% endhighlight %}
+
+{% highlight objc %}
+
+@implementation NSArray (Comparator)
+-(NSArray *) quicksortUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
+{
+    NSArray *array = [self copy];
+
+    if ([array count]<2) return [array copy];
+
+    id pivot = [array randomElement];
+    NSMutableArray *array2= [NSMutableArray array];
+
+    array = [array arrayByPerformingBlock:^id(id element) { return element;}
+                    ifElementPassesTest:^BOOL(id element) { return comparator(element, pivot) == NSOrderedAscending;}
+                       elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
+            ];
+    return [[[array quicksortUsingComparator:comparator]
+                                    arrayByAddingObject:pivot]
+                                        arrayByAddingObjectsFromArray:[array2 quicksortUsingComparator:comparator]];
+}
+
+-(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
+{
+    return [self quicksortUsingComparator:comparator];
+}
+@end
+{% endhighlight %}
+
 
 ### NSArray+FunctionalTool
 
@@ -239,63 +301,4 @@ typedef id (^VSTestBlock)(id element);
 }
 
 @end
-{% endhighlight %}
-
-
-
-### Example Usage
-{% highlight objc %}
-
-//
-//  main.m
-//  arraycomparator
-//
-//  Created by Manuel Meyer on 05.02.15.
-//  Copyright (c) 2015  All rights reserved.
-//
-
-#import <Foundation/Foundation.h>
-#import "NSArray+FunctionalTools.h"
-#import "NSArray+RandomUtils.h"
-
-@interface NSArray (Comparator)
--(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator;
-@end
-
-@implementation NSArray (Comparator)
--(NSArray *) quicksortUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
-{
-    NSArray *array = [self copy];
-
-    if ([array count]<2) return [array copy];
-
-    id pivot = [array randomElement];
-    NSMutableArray *array2= [NSMutableArray array];
-
-    array = [array arrayByPerformingBlock:^id(id element) { return element;}
-                    ifElementPassesTest:^BOOL(id element) { return comparator(element, pivot) == NSOrderedAscending;}
-                       elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
-            ];
-    return [[[array quicksortUsingComparator:comparator]
-                                    arrayByAddingObject:pivot]
-                                        arrayByAddingObjectsFromArray:[array2 quicksortUsingComparator:comparator]];
-}
-
--(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
-{
-    return [self quicksortUsingComparator:comparator];
-}
-@end
-
-
-int main(int argc, const char * argv[]) {
-    @autoreleasepool {
-        NSArray *array = @[@4, @9, @2, @1, @7];
-
-        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
-            return  [obj1 compare:obj2];
-        }];
-    }
-    return 0;
-}
 {% endhighlight %}

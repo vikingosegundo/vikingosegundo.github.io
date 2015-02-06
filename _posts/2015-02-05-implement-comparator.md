@@ -1,5 +1,5 @@
 ---
-title: Implementing Comparator Sorting
+title: Implementing Comparator Sorting with QuickSort Algorithm
 layout: posts
 comments: true
 

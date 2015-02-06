@@ -40,6 +40,25 @@
 
 <p>in response to this <a href="http://stackoverflow.com/questions/28348022/how-is-the-sortedarrayusingcomparator-method-written-in-objective-c/28349545#28349545">Stackoverflow question</a></p>
 
+<h3>Example Usage</h3>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+<span class="cp">#import &quot;NSArray+Comparator&quot;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+    <span class="k">@autoreleasepool</span> <span class="p">{</span>
+        <span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="l">@[</span><span class="mi">@4</span><span class="p">,</span> <span class="mi">@9</span><span class="p">,</span> <span class="mi">@2</span><span class="p">,</span> <span class="mi">@1</span><span class="p">,</span> <span class="mi">@7</span><span class="l">]</span><span class="p">;</span>
+
+        <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">vs_sortedArrayUsingComparator</span><span class="p">:</span><span class="o">^</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span>  <span class="p">[</span><span class="n">obj1</span> <span class="nl">compare</span><span class="p">:</span><span class="n">obj2</span><span class="p">];</span>
+        <span class="p">}];</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></div>
+
+
+
+
 
 
 <p><a href="/2015/02/05/implement-comparator/">read more</a></p>

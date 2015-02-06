@@ -16,6 +16,7 @@ in response to this [Stackoverflow question][1]
 
 
 ### Example Usage
+{% highlight objc %}
 
 #import <Foundation/Foundation.h>
 #import "NSArray+Comparator"

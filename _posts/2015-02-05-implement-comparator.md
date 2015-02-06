@@ -31,6 +31,19 @@ int main(int argc, const char * argv[]) {
 }
 {% endhighlight %}
 
+Results in
+
+```
+(
+  1,
+  2,  
+  4,
+  7,
+  9
+)
+
+```
+
 <!--break-->
 
 This implements a quicksort algorithm that uses a comparator block to determin the ordering.

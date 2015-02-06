@@ -24,8 +24,8 @@ in response to this [Stackoverflow question][1]
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         NSArray *array = @[@4, @9, @2, @1, @7];
-
-        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2)
+        {
             return  [obj1 compare:obj2];
         }];
     }

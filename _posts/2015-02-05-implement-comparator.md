@@ -17,7 +17,6 @@ in response to this [Stackoverflow question][1]
 
 ### Example Usage
 {% highlight objc %}
-
 #import <Foundation/Foundation.h>
 #import "NSArray+Comparator"
 
@@ -37,10 +36,9 @@ int main(int argc, const char * argv[]) {
 
 This implements a quicksort algorithm that uses a comparator block to determin the ordering.
 
-{% highlight objc %}
-
 ### NSArray+Comparator
 
+{% highlight objc %}
 #import "NSArray+FunctionalTools.h"
 #import "NSArray+RandomUtils.h"
 

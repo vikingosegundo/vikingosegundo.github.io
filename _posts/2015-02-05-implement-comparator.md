@@ -33,13 +33,7 @@ int main(int argc, const char * argv[]) {
 
 Results in
 {% highlight objc %}
-(
-  1,
-  2,  
-  4,
-  7,
-  9
-)
+( 1, 2, 4, 7, 9 )
 {% endhighlight %}
 
 <!--break-->

@@ -11,7 +11,6 @@ This shows how to implement a block based sorting with the quicksort algorithm.
 in response to this [Stackoverflow question][1]
 
 
-[1]: http://stackoverflow.com/questions/28348022/how-is-the-sortedarrayusingcomparator-method-written-in-objective-c/28349545#28349545
 
 
 
@@ -308,4 +307,8 @@ typedef id (^VSTestBlock)(id element);
 
 [Download gist][gist]
 
+
+
+
+[1]:http://stackoverflow.com/questions/28348022/how-is-the-sortedarrayusingcomparator-method-implemented
 [gist]: https://gist.github.com/vikingosegundo/7894ea6ab9170f7fc10e

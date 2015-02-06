@@ -62,8 +62,8 @@ This implements a quicksort algorithm that uses a comparator block to determin t
     NSMutableArray *array2= [NSMutableArray array];
 
     array = [array arrayByPerformingBlock:^id(id element) { return element;}
-                    ifElementPassesTest:^BOOL(id element) { return comparator(element, pivot) == NSOrderedAscending;}
-                       elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
+                      ifElementPassesTest:^BOOL(id element) { return comparator(element, pivot) == NSOrderedAscending;}
+                         elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
             ];
     return [[[array quicksortUsingComparator:comparator]
                                     arrayByAddingObject:pivot]
@@ -89,23 +89,23 @@ typedef id (^VSTestBlock)(id element);
 - (NSArray*)filter:(BOOL(^)(id element))filterBlock;
 
 +(NSArray *)arrayByPerformingBlock:(id(^)(NSInteger index))performBlock
-        withIndexFromRange:(NSRange)range;
+                withIndexFromRange:(NSRange)range;
 
 - (NSArray *)arrayByPerformingBlock:(id  (^)(id element))performBlock;
 
 - (NSArray *)arrayByPerformingBlock:(id  (^)(id element))performBlock
-        ifElementPassesTest:(BOOL(^)(id element))testBlock;
+                ifElementPassesTest:(BOOL(^)(id element))testBlock;
 
 - (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
-        ifElementPassesTest:(BOOL (^)(id element))testBlock
-           elsePerformBlock:(void (^)(id element))elseBlock;
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock;
 
 - (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
-        ifElementPassesTest:(BOOL (^)(id element))testBlock
-           elsePerformBlock:(void (^)(id element))elseBlock
-               succeded:(void (^) ())succesBlock
-               failed:(void (^)(id element))failedBlock
-           stopOnFailedTest:(BOOL)stop;
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock
+                           succeded:(void (^) ())succesBlock
+                             failed:(void (^)(id element))failedBlock
+                   stopOnFailedTest:(BOOL)stop;
 
 
 -(NSSet *)setByPerformingBlock:(id  (^)(id element))performBlock
@@ -144,7 +144,8 @@ typedef id (^VSTestBlock)(id element);
   return [NSArray arrayWithArray:filteredArray];
 }
 
-+(NSArray *)arrayByPerformingBlock:(id (^)(NSInteger))performBlock withIndexFromRange:(NSRange)range
++(NSArray *)arrayByPerformingBlock:(id (^)(NSInteger))performBlock
+                withIndexFromRange:(NSRange)range
 {
   NSMutableArray *array = [NSMutableArray array];
   for (NSUInteger i = range.location; i< range.location+range.length; ++i) {
@@ -154,7 +155,7 @@ typedef id (^VSTestBlock)(id element);
 }
 
 
-- (NSArray *)arrayByPerformingBlock:(id  (^)(id element))performBlock
+- (NSArray *)arrayByPerformingBlock:(id (^)(id element))performBlock
 {
   return [self arrayByPerformingBlock:performBlock
           ifElementPassesTest:^BOOL(id element) { return  YES;}];
@@ -162,18 +163,18 @@ typedef id (^VSTestBlock)(id element);
 
 
 - (NSArray *)arrayByPerformingBlock:(id(^)(id element))performBlock
-             ifElementPassesTest:(BOOL(^)(id element))testBlock
+                ifElementPassesTest:(BOOL(^)(id element))testBlock
 {
 
   return [self arrayByPerformingBlock:performBlock
-               ifElementPassesTest:testBlock
-             elsePerformBlock:^(id element){;}];
+                  ifElementPassesTest:testBlock
+                     elsePerformBlock:^(id element){;}];
 }
 
 
 -(NSArray *)arrayByPerformingBlock:(id (^)(id))performBlock
-            ifElementPassesTest:(BOOL (^)(id))testBlock
-          elsePerformBlock:(void (^)(id))elseBlock
+               ifElementPassesTest:(BOOL (^)(id))testBlock
+                  elsePerformBlock:(void (^)(id))elseBlock
 {
   NSMutableArray *array = [NSMutableArray array];
   for (id element in self)
@@ -186,11 +187,11 @@ typedef id (^VSTestBlock)(id element);
 
 
 - (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
-        ifElementPassesTest:(BOOL (^)(id element))testBlock
-           elsePerformBlock:(void (^)(id element))elseBlock
-               succeded:(void (^)())succesBlock
-               failed:(void (^)(id element))failedBlock
-           stopOnFailedTest:(BOOL)stop
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock
+                           succeded:(void (^)())succesBlock
+                             failed:(void (^)(id element))failedBlock
+                   stopOnFailedTest:(BOOL)stop
 
 {
   NSMutableArray *array = [NSMutableArray array];

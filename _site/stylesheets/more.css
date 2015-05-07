@@ -6,6 +6,9 @@
 .clearfix:after {
   clear: both;
 }
+.postContentPadding {
+  padding: 0 1em 1em 1em;
+}
 html,
 body {
   border: 0;
@@ -214,19 +217,21 @@ h1 {
   padding-top: 1em;
   color: #34495e;
 }
+#content ul {
+  padding-left: 2em;
+  list-style-type: square;
+}
 #content p {
+  padding: 0 1em 1em 1em;
   vertical-align: middle;
   margin: auto;
 }
 #content p a {
   color: #34495e;
 }
-#content ul {
-  padding-left: 2em;
-  list-style-type: square;
-}
 #content .post {
   min-width: 320px;
+  min-height: 560px;
   width: 50%;
   margin: auto;
   float: left;
@@ -246,12 +251,10 @@ h1 {
 #content .post div {
   line-height: 1.4em;
 }
-#content .post p {
-  padding: 0 1em;
-}
 #content .post_detail {
   min-width: 320px;
   max-width: 900px;
+  padding: 0 1em 1em 1em;
 }
 #content .post_detail:before,
 #content .post_detail:after {

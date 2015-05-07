@@ -227,6 +227,7 @@ h1 {
 }
 #content .post {
   min-width: 320px;
+  height: 500px;
   width: 50%;
   margin: auto;
   float: left;

@@ -108,6 +108,68 @@ sample codes, mailinglists, stackoverflow.com, Books,…</p>
 
 
 
+<div class="post">
+
+<h2><a href="/2011/10/24/variadic-lists-and-blocks/">Variadic Lists and Blocks</a></h2>
+<h4>24 October 2011</h4>
+<p>Matt Gallagher <a href="http://cocoawithlove.com/2009/05/variable-argument-lists-in-cocoa.html">posted an great article about veriadic lists</a>. In his conclusion he writes</p>
+
+<blockquote><p>In your own code, variadic methods should be used sparingly — passing variables in an NSArray or NSDictionary is safer (if slightly slower and syntactically more verbose) due to the fact that these classes do offer introspection.<br/>
+And I think he is right.
+But now I found a situation, where it makes much more sense to have a veridic list of arguments rather a NSArray or NSDictionary.</p></blockquote>
+
+<p>I wrote a Category method on NSArray, that allows the user, to filter the array by blocks and create a dictionary with given keys.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span> <span class="nf">dictionaryByFilteringWithBlocks:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">filterBlocks</span>
+                                           <span class="nf">forKeys:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">keys</span></code></pre></div>
+
+
+
+
+
+
+<p><a href="/2011/10/24/variadic-lists-and-blocks/">read more</a></p>
+
+</div>
+
+
+
+<div class="post">
+
+<h2><a href="/2011/10/09/beat-this-python/">Beat This, Python!</a></h2>
+<h4>09 October 2011</h4>
+<p><strong>I love Python. I love Objective-C.</strong></p>
+
+<p>"Huh?!" I hear you thinking, "they are complete different, how can you like both"?</p>
+
+<p>Well, nothing is perfect, even in a lovely relationship.
+There are things, that drive me crazy in one — and things that are missing, form my point of view, in the other language</p>
+
+<p>One thing I'd love to see in Python, that Objective-C has, is extending a class — Categories.
+Every language should have functional tools like pythons List Comprehensions, but Objective-C hasn't.</p>
+
+<p>But since Apple extended Objective-C by introducing Blocks to the underlaying C, it is now possible to have something similar to List Comprehensions — and this article is about how.
+When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
+here we go:</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">quicksort</span><span class="p">(</span><span class="n">alist</span><span class="p">):</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="n">alist</span>
+    <span class="n">pivotelement</span> <span class="o">=</span> <span class="n">alist</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+    <span class="n">left</span>  <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&lt;</span> <span class="n">pivotelement</span><span class="p">]</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&gt;=</span> <span class="n">pivotelement</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">pivotelement</span><span class="p">]</span> <span class="o">+</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code></pre></div>
+
+
+
+
+
+
+<p><a href="/2011/10/09/beat-this-python/">read more</a></p>
+
+</div>
+
+
+
 </div>
 
 <div id="footer">

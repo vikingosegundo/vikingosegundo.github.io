@@ -5,6 +5,10 @@
   &:after{ clear: both; }
 }
 
+.postContentPadding {
+  padding: 0 1em 1em 1em;
+
+}
 .rotation (@angle: 10deg, @x:0%, @y:0%) {
   transform: rotate(@angle);
   -moz-transform: rotate(@angle);
@@ -174,14 +178,6 @@ h1{
     padding-top: 1em;
     color: @linkcolor;
   }
-  p {
-    vertical-align: middle;
-
-    margin: auto;
-    a{
-      color: @linkcolor;
-    }
-  }
   ul {
 
     // padding-top: .5em;
@@ -189,9 +185,18 @@ h1{
     list-style-type: square;
 
   }
+  p {
+    .postContentPadding;
+    vertical-align: middle;
 
+    margin: auto;
+    a{
+      color: @linkcolor;
+    }
+  }
   .post{
     min-width:320px;
+    min-height: 560px;
     width:50%;
     margin:auto;
     float:left;
@@ -214,14 +219,13 @@ h1{
       line-height:1.4em;
     }
 
-    p {
-      padding: 0 1em;
-    }
+
   }
   .post_detail{
 
     min-width:320px;
     max-width:900px;
+    .postContentPadding;
     .clearfix;
   }
   .clearfix;

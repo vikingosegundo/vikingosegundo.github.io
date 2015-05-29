@@ -36,7 +36,7 @@ But I know that singletons seduce us to take short circuits — those of the
 dangerous kind: We use singletons to fulfill dependencies from within a
 class. We might be tempted to write this:
 
-{% highlight swift %}
+{% highlight objc %}
 class ActivityViewController: UIViewController{
 
     //....
@@ -62,7 +62,7 @@ We define a property that we write our singleton to. This will increase the
 visability of the dependency immensly.
 
 
-{% highlight swift %}
+{% highlight objc %}
 class ActivityViewController: UIViewController{
     var currentUser: User?
     //....
@@ -112,7 +112,7 @@ A delegate promises to fulfill a certain protocol. This is a contract.
 
 In Swift we need class protocols for that:
 
-{% highlight swift %}
+{% highlight objc %}
 protocol CurrentUserAccessor : class{
     var currentUser : User? {set get}
 }
@@ -124,7 +124,7 @@ just doens't give this information to the tabBar controller.
 To change that, we just add the contract's name to the protocol list
 
 
-{% highlight swift %}
+{% highlight objc %}
 class ActivityViewController: UIViewController, CurrentUserAccessor {
   var currentUser: User?
 {% endhighlight %}
@@ -134,7 +134,7 @@ Now before my tab bar controller brings a view controller to the screen, it will
 run this method to fulfill the viewcontrollers contracts, without even knowing
 them. It just knows the contracts:
 
-{% highlight swift %}
+{% highlight objc %}
 
 func configureTargetViewController(viewController: UIViewController?){
     if let tvc = viewController {
@@ -167,7 +167,7 @@ I think, this is pretty cool and I apply it for other parts of the code as well.
 
 
 
-{% highlight swift %}
+{% highlight objc %}
 override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
     if let currentUserAcceesor = tvc as? CurrentUserAccessor{
         currentUserAcceesor.currentUser = User.current()

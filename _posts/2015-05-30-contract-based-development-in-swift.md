@@ -18,6 +18,7 @@ singletons — they were everywhere:
 * Networking: `APIManager.sharedManager()`
 * extra methods in APPDelgate
 * …
+<!--break-->
 
 And the usual suspects:
 

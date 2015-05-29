@@ -1,5 +1,5 @@
 ---
-title: Contract Based Development in Swift, or: Yet Another Singleton Rant
+title: Contract Based Development in Swift
 layout: posts
 comments: true
 

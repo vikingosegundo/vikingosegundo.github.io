@@ -5,18 +5,16 @@ comments: true
 
 ---
 
-Recently I started working an existing Swift project. The original author
-isn't able to work on it due to illness — I wish him a quick recovery and
-time to relax with your family.
+Recently I started working an existing Swift project.
 
-One task I was asked was to gain a higher decoupling.
+One task I was asked was to gain higher decoupling.
 
-The project had a high coupling mainly through the excessive use of
+<!-- The project had a high coupling mainly through the excessive use of -->
 singletons — they were everywhere:
 
 * Model layer: `User.current()`
 * Networking: `APIManager.sharedManager()`
-* extra methods in APPDelgate
+* extra methods in the AppDelegate
 * …
 <!--break-->
 
@@ -59,7 +57,7 @@ The problem is that we use the singleton as a singleton from with-in a class.
 
 But we could use it from outside the class:  
 We define a property that we write our singleton to. This will increase the
-visability of the dependency immensly.
+visibility of the dependency immensely.
 
 
 {% highlight objc %}
@@ -95,19 +93,19 @@ Now I want to take it a step further:
 In one of the view controllers I found 7(!) different singletons and I realized
 after the refactoring described above that the visibility of the dependencies
 wasn't high enough, as they where somehow lost in the long list of properties.  
-Also I needed a way of setting the deoendencies for different view controllers
+Also I needed a way of setting the dependencies for different view controllers
 from within a custom UITabBarController subclass. I didn't want to check for each
 selected viewcontroller if it was a certain subclass and set the properties
-accordingly, as this would had introduced new coupling, the tabbr controller
-must now the name and the properties of each its viewcontrollers.
+accordingly, as this would had introduced new coupling, the tabbar controller
+must know the name and the properties of each its viewcontrollers.
 
 I introduced contracts: A viewcontroller that needs to know the current user
 would implement a `Current User Contract` and share this information, the tabBar
-controller would access this and set the current user accordenly.
+controller would access this and set the current user accordingly.
 
 ## implementation of Contracts
 
-We are using contracts in cocoa ever since — we just use the name very often:
+We are using contracts in cocoa ever since — we just don't use the name very often:
 A delegate promises to fulfill a certain protocol. This is a contract.
 
 In Swift we need class protocols for that:
@@ -120,15 +118,13 @@ protocol CurrentUserAccessor : class{
 
 That's it. That is our contract.  
 As  we see our current `ActivityViewController` does already fulfill it — it
-just doens't give this information to the tabBar controller.  
+just doesn't give this information to the tabBar controller.  
 To change that, we just add the contract's name to the protocol list
-
 
 {% highlight objc %}
 class ActivityViewController: UIViewController, CurrentUserAccessor {
   var currentUser: User?
 {% endhighlight %}
-
 
 Now before my tab bar controller brings a view controller to the screen, it will
 run this method to fulfill the viewcontrollers contracts, without even knowing
@@ -173,9 +169,15 @@ override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         currentUserAcceesor.currentUser = User.current()
     }
 
-
     if let apiManagerAccessor = segue.destinationViewController  as? APIManagerAccessor{
         apiManagerAccessor.apiManager = self.apiManager
     }
 }
 {% endhighlight %}
+
+## tl;dr
+
+* Singletons should be passed into a class and used as any member inside it
+* By using contracts we can easily increase decoupling. Usually we don't need to
+know the class of an object but rather it capabilities.
+* Protocols are an easy way to formulate contracts.

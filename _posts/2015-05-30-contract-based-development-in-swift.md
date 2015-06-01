@@ -7,10 +7,8 @@ comments: true
 
 Recently I started working an existing Swift project.
 
-One task I was asked was to gain higher decoupling.
-
-<!-- The project had a high coupling mainly through the excessive use of -->
-singletons — they were everywhere:
+One task I was asked was to gain higher decoupling. The project had a high
+coupling mainly through the excessive use of singletons — they were everywhere:
 
 * Model layer: `User.current()`
 * Networking: `APIManager.sharedManager()`

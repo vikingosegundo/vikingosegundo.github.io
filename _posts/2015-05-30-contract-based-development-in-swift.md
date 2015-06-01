@@ -145,8 +145,8 @@ func configureTargetViewController(viewController: UIViewController?){
             applicationAccessor.application = UIApplication.sharedApplication()
         }
 
-        if let currentUserAcceesor = tvc as? CurrentUserAccessor{
-            currentUserAcceesor.currentUser = User.current()
+        if let currentUserAccessor = tvc as? CurrentUserAccessor{
+            currentUserAccessor.currentUser = User.current()
         }
 
         if let notificationCenterAccessor = tvc as? NotificationCenterAccessor{

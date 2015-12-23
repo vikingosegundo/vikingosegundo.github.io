@@ -1,5 +1,5 @@
 ---
-title: SOLID Swift: Dependency Inversion Principle
+title: SOLID Swift, Dependency Inversion Principle
 layout: posts
 comments: true
 

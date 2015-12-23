@@ -55,7 +55,7 @@ As `dateFromString()` can return `nil`, we introduce some error handling
 
 {% highlight objc %}
 
-enum HourError: ErrorType {
+enum TrackedHoursError: ErrorType {
     case InvalidDate
 }
 
@@ -73,7 +73,7 @@ struct TrackedHours {
         let dateFormatter = NSDateFormatter()
         dateFormatter.dateFormat = "MMM d, y"
         let date = dateFormatter.dateFromString(dateString)
-        guard date != nil else { throw HourError.InvalidDate}
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
         self.init(date: date!, duration:duration)
     }
 }
@@ -104,7 +104,7 @@ but that is an implementation detail. Only the convenient init needs to use the
 formatter, we don't need to keep it.
 
 {% highlight objc %}
-enum HourError: ErrorType {
+enum TrackedHoursError: ErrorType {
     case InvalidDate
 }
 
@@ -120,7 +120,7 @@ struct TrackedHours {
 
     init (dateFormatter:NSDateFormatter, dateString:String, duration:Double) throws {
         let date = dateFormatter.dateFromString(dateString)
-        guard date != nil else { throw HourError.InvalidDate}
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
         self.init(date: date!, duration:duration)
     }
 }
@@ -173,7 +173,7 @@ struct TrackedHours {
 
     init (dateFormatter:DateFormatting, dateString:String, duration:Double) throws {
         let date = dateFormatter.dateFromString(dateString)
-        guard date != nil else { throw HourError.InvalidDate}
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
         self.init(date: date!, duration:duration)
     }
 }

@@ -8,13 +8,13 @@ comments: true
 This is he first article in a series about applying the SOLID principles in Swift,
 mainly for the iOS and Mac platforms. I will not start with the *S*, but with the *D*
 — The Dependency Inversion Principle, DIP
-<!--break-->
 
 What does the DIP state?
 
 > High-level modules should not depend on low-level modules. Both should depend on abstractions.  
 
 > Abstractions should not depend on details. Details should depend on abstractions.
+<!--break-->
 
 In context of Swift we could say
 

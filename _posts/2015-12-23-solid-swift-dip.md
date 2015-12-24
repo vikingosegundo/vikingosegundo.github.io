@@ -185,3 +185,124 @@ Imagine your data about the tracked hours comes from different sources in differ
 Now it is easy to create an instance that conforms to `DateFormatting` by keeping
 a list of date formatter and ask each of it to create a date from a string, it
 would be a light weight proxy.  
+
+At the end of this post you will find the complete post. Including the object proxying the
+date formatters.
+
+A word of warning: You should **NEVER** handle different date formats like this.  
+You should know with data source uses which date format and normalize it upon receiving data.  
+If you uncomment the line marked /\*⛈\*/, you will see that an `AmbigousDate` error is thrown,
+as the 2nd and the 3rd dateformatters will both understand it — differently.
+
+{% highlight swift %}
+import Foundation
+
+protocol DateFormatting {
+    func dateFromString(string: String)  -> NSDate?
+    func error() -> TrackedHoursError?
+
+}
+
+extension NSDateFormatter : DateFormatting {
+    func error() -> TrackedHoursError? {
+        return nil
+    }
+
+}
+
+
+enum TrackedHoursError: ErrorType {
+    case InvalidDate
+    case AmbigousDate
+}
+
+struct TrackedHours {
+
+    let date: NSDate
+    let duration: Double
+
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
+
+    init (dateFormatter:DateFormatting, dateString:String, duration:Double) throws {
+        let date =  dateFormatter.dateFromString(dateString)
+        guard date != nil else {
+            if let error = dateFormatter.error() {
+                throw error
+            } else {
+                throw TrackedHoursError.InvalidDate
+            }
+        }
+        self.init(date: date!, duration:duration)
+    }
+}
+
+class MultiDateFormatter : DateFormatting {
+
+    let dateFormatters: [DateFormatting]
+    init(dateFormatters: [DateFormatting]){
+        self.dateFormatters = dateFormatters
+    }
+    private var _error: TrackedHoursError?
+
+    func error() -> TrackedHoursError? { return _error }
+
+    func dateFromString(string: String)  -> NSDate? {
+
+        var possibleDates = [NSDate]()
+        for df in dateFormatters {
+            if let date = df.dateFromString(string) {
+                possibleDates.append(date)
+            }
+        }
+        guard possibleDates.count < 2 else { self._error = .AmbigousDate; return nil }
+        guard possibleDates.count == 1 else { return nil }
+        return possibleDates[0]
+    }
+}
+
+
+
+do {
+    let currentMonth = NSCalendar.currentCalendar().dateFromComponents({
+            let comps = NSDateComponents();
+            comps.day = 1;
+            comps.month = 12;
+            comps.year = 2015;
+            return comps
+        }())!
+    let multiDateFormatter = MultiDateFormatter(dateFormatters: [
+        {let df = NSDateFormatter(); df.dateFormat = "yyyy, MM, dd"; return df}(),
+        {let df = NSDateFormatter(); df.dateFormat = "dd, MM, yyyy"; return df}(),
+        {let df = NSDateFormatter(); df.dateFormat = "MM, dd, yyyy"; return df}()
+        ])
+
+
+    let hoursData = [
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "11/29, 2015",       duration: 7.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "December 12, 2015", duration: 7.5),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "13.12.2015",        duration: 7.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "14/12/2015",        duration: 8.0),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "2015-12-15",        duration: 8.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "Dec 12, 2015",      duration: 7.1),
+//      try TrackedHours(dateFormatter: multiDateFormatter, dateString: "1 12, 2015",      duration: 7.1)/*⛈*/
+
+    ]
+
+
+    let totalDuration = hoursData.filter{
+        let objectsComps = NSCalendar.currentCalendar().components([.Month, .Year], fromDate: $0.date)
+        let todaysComps  = NSCalendar.currentCalendar().components([.Month, .Year], fromDate: currentMonth)
+        return objectsComps.month == todaysComps.month && objectsComps.year == todaysComps.year
+        }.reduce(0) {
+            $0 + $1.duration
+    }
+    print(totalDuration)
+} catch TrackedHoursError.InvalidDate{
+    print("one or more datestrings must be wrong")
+}  catch TrackedHoursError.AmbigousDate{
+    print("more than one dateformatter were able to interprete a string")
+}
+{% endhighlight %}

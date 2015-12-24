@@ -195,10 +195,14 @@ If you uncomment the line marked /\*⛈\*/, you will see that an `AmbigousDate` 
 as the 2nd and the 3rd dateformatters will both understand it — differently.
 
 {% highlight swift %}
+//: [Previous](@previous)
+
 import Foundation
+
 
 protocol DateFormatting {
     func dateFromString(string: String)  -> NSDate?
+
     func error() -> TrackedHoursError?
 
 }
@@ -213,7 +217,7 @@ extension NSDateFormatter : DateFormatting {
 
 enum TrackedHoursError: ErrorType {
     case InvalidDate
-    case AmbigousDate
+    case AmbigousDate(String)
 }
 
 struct TrackedHours {
@@ -257,7 +261,7 @@ class MultiDateFormatter : DateFormatting {
                 possibleDates.append(date)
             }
         }
-        guard possibleDates.count < 2 else { self._error = .AmbigousDate; return nil }
+        guard possibleDates.count < 2 else { self._error = .AmbigousDate(string); return nil }
         guard possibleDates.count == 1 else { return nil }
         return possibleDates[0]
     }
@@ -302,7 +306,8 @@ do {
     print(totalDuration)
 } catch TrackedHoursError.InvalidDate{
     print("one or more datestrings must be wrong")
-}  catch TrackedHoursError.AmbigousDate{
-    print("more than one dateformatter were able to interprete a string")
+}  catch TrackedHoursError.AmbigousDate(let string){
+    print("more than one dateformatter were able to interprete this string: \(string)")
 }
+
 {% endhighlight %}

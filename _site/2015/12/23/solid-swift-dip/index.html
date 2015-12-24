@@ -212,10 +212,14 @@ You should know with data source uses which date format and normalize it upon re
 If you uncomment the line marked /*⛈*/, you will see that an <code>AmbigousDate</code> error is thrown,
 as the 2nd and the 3rd dateformatters will both understand it — differently.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">import</span> <span class="n">Foundation</span>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">//: [Previous](@previous)</span>
+
+<span class="k">import</span> <span class="n">Foundation</span>
+
 
 <span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>
     <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span>
+
     <span class="k">func</span> <span class="n">error</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TrackedHoursError</span><span class="o">?</span>
 
 <span class="p">}</span>
@@ -230,7 +234,7 @@ as the 2nd and the 3rd dateformatters will both understand it — differently.</
 
 <span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
     <span class="k">case</span> <span class="n">InvalidDate</span>
-    <span class="k">case</span> <span class="n">AmbigousDate</span>
+    <span class="k">case</span> <span class="n">AmbigousDate</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
@@ -274,7 +278,7 @@ as the 2nd and the 3rd dateformatters will both understand it — differently.</
                 <span class="n">possibleDates</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
             <span class="p">}</span>
         <span class="p">}</span>
-        <span class="n">guard</span> <span class="n">possibleDates</span><span class="p">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">{</span> <span class="nb">self</span><span class="p">.</span><span class="n">_error</span> <span class="o">=</span> <span class="p">.</span><span class="n">AmbigousDate</span><span class="p">;</span> <span class="k">return</span> <span class="nb">nil</span> <span class="p">}</span>
+        <span class="n">guard</span> <span class="n">possibleDates</span><span class="p">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">{</span> <span class="nb">self</span><span class="p">.</span><span class="n">_error</span> <span class="o">=</span> <span class="p">.</span><span class="n">AmbigousDate</span><span class="p">(</span><span class="n">string</span><span class="p">);</span> <span class="k">return</span> <span class="nb">nil</span> <span class="p">}</span>
         <span class="n">guard</span> <span class="n">possibleDates</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">nil</span> <span class="p">}</span>
         <span class="k">return</span> <span class="n">possibleDates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="p">}</span>
@@ -319,8 +323,8 @@ as the 2nd and the 3rd dateformatters will both understand it — differently.</
     <span class="n">print</span><span class="p">(</span><span class="n">totalDuration</span><span class="p">)</span>
 <span class="p">}</span> <span class="n">catch</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">{</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;one or more datestrings must be wrong&quot;</span><span class="p">)</span>
-<span class="p">}</span>  <span class="n">catch</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">AmbigousDate</span><span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;more than one dateformatter were able to interprete a string&quot;</span><span class="p">)</span>
+<span class="p">}</span>  <span class="n">catch</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">AmbigousDate</span><span class="p">(</span><span class="k">let</span> <span class="n">string</span><span class="p">){</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;more than one dateformatter were able to interprete this string: \(string)&quot;</span><span class="p">)</span>
 <span class="p">}</span></code></pre></div>
 
 

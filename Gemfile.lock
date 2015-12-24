@@ -136,4 +136,7 @@ PLATFORMS
 DEPENDENCIES
   github-pages
   jekyll-less
-  therubyracer (~> 0.12.1)
+  therubyracer
+
+BUNDLED WITH
+   1.11.2

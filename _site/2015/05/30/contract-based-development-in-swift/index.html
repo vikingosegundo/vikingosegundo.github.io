@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manuel Meyer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+
+  <link href="/stylesheets/more.css" rel="stylesheet">
+  <link href="/stylesheets/syntax.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="header">
+    <a href="/"><div class="avatar">&nbsp;</div></a>
+      <div class="personal-details">
+        <a href="/"><h1>Manuel Meyer</h1></a>
+        <p>
+          Software Engineer
+        </p>
+        <ul>
+          <li><a href="http://stackoverflow.com/users/106435/vikingosegundo">stackoverflow</a></li>
+          <li><a href="http://github.com/vikingosegundo">github</a></li>
+          <li><a href="http://twitter.com/vikingosegundo">twitter</a></li>
+        </ul>
+      </div>
+  </div>
+
+  <div class="container">
+
+<div id="content">
+
+<div class="row-fluid">
+  <div class="span8">
+    <h1>Contract Based Development in Swift</h1>
+
+    <p>Recently I started working an existing Swift project.</p>
+
+<p>One task I was asked was to gain higher decoupling. The project had a high
+coupling mainly through the excessive use of singletons — they were everywhere:</p>
+
+<ul>
+<li>Model layer: <code>User.current()</code></li>
+<li>Networking: <code>APIManager.sharedManager()</code></li>
+<li>extra methods in the AppDelegate</li>
+<li>…</li>
+</ul>
+
+
+<!--break-->
+
+
+<p>And the usual suspects:</p>
+
+<ul>
+<li><code>NSNotificationCenter.defaultCenter()</code></li>
+<li><code>UIApplication.sharedApplication()</code></li>
+</ul>
+
+
+<h2>Why are singletons creating coupling? Apple uses them too!</h2>
+
+<p>Well, we know that cocoa contains quite a few singletons in the
+<code>sharedSomething()</code> fashion, but not the existence of singletons are
+problematic, but how we use them — and I don't know how Apple's engineers
+uses them.</p>
+
+<p>But I know that singletons seduce us to take short circuits — those of the
+dangerous kind: We use singletons to fulfill dependencies from within a
+class. We might be tempted to write this:</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">{</span>
+
+    <span class="c1">//....</span>
+
+    <span class="n">func</span> <span class="n">buttonTappedInActivityCell</span><span class="p">(</span><span class="nl">cell</span><span class="p">:</span> <span class="n">ActivityTableCell</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="n">let</span> <span class="n">friendOrUserId</span> <span class="o">=</span> <span class="n">cell</span><span class="p">.</span><span class="n">activity</span><span class="o">?</span><span class="p">.</span><span class="n">actorReferenceId</span> <span class="p">{</span>
+            <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span><span class="o">!</span><span class="p">.</span><span class="n">befriend</span><span class="p">(</span><span class="n">friendOrUserId</span><span class="p">,</span> <span class="nl">success</span><span class="p">:</span> <span class="nb">nil</span><span class="p">,</span> <span class="nl">failure</span><span class="p">:</span> <span class="nb">nil</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="c1">//....</span>
+
+<span class="p">}</span></code></pre></div>
+
+
+<p>This is problematic as this hides the dependencies of <code>ActivityViewController</code>,
+You'll have to scan the whole code to find them.<br/>
+Again: it is not the singleton itself, that is problematic. <code>User.current()</code> is
+quite useful if you don't want to write CoreData query code over and over again.<br/>
+The problem is that we use the singleton as a singleton from with-in a class.</p>
+
+<p>But we could use it from outside the class:<br/>
+We define a property that we write our singleton to. This will increase the
+visibility of the dependency immensely.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">{</span>
+    <span class="n">var</span> <span class="nl">currentUser</span><span class="p">:</span> <span class="n">User</span><span class="o">?</span>
+    <span class="c1">//....</span>
+
+    <span class="n">func</span> <span class="n">buttonTappedInActivityCell</span><span class="p">(</span><span class="nl">cell</span><span class="p">:</span> <span class="n">ActivityTableCell</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="n">let</span> <span class="n">friendOrUserId</span> <span class="o">=</span> <span class="n">cell</span><span class="p">.</span><span class="n">activity</span><span class="o">?</span><span class="p">.</span><span class="n">actorReferenceId</span> <span class="p">{</span>
+            <span class="n">currentUser</span><span class="o">!</span><span class="p">.</span><span class="n">befriend</span><span class="p">(</span><span class="n">friendOrUserId</span><span class="p">,</span> <span class="nl">success</span><span class="p">:</span> <span class="nb">nil</span><span class="p">,</span> <span class="nl">failure</span><span class="p">:</span> <span class="nb">nil</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="c1">//....</span>
+
+<span class="p">}</span></code></pre></div>
+
+
+<p>We just have to pass in an user object before you bring the view controller
+on the screen. This user object could be the singleton.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">activityViewController</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span></code></pre></div>
+
+
+<p>This is simple, but you will gain so much if you stick to it:
+* higher decoupling
+* better testability, as it become dead simple to pass a mock object instead</p>
+
+<h2>Contracts</h2>
+
+<p>Now I want to take it a step further:</p>
+
+<p>In one of the view controllers I found 7(!) different singletons and I realized
+after the refactoring described above that the visibility of the dependencies
+wasn't high enough, as they where somehow lost in the long list of properties.<br/>
+Also I needed a way of setting the dependencies for different view controllers
+from within a custom UITabBarController subclass. I didn't want to check for each
+selected viewcontroller if it was a certain subclass and set the properties
+accordingly, as this would had introduced new coupling, the tabbar controller
+must know the name and the properties of each its viewcontrollers.</p>
+
+<p>I introduced contracts: A viewcontroller that needs to know the current user
+would implement a <code>Current User Contract</code> and share this information, the tabBar
+controller would access this and set the current user accordingly.</p>
+
+<h2>implementation of Contracts</h2>
+
+<p>We are using contracts in cocoa ever since — we just don't use the name very often:
+A delegate promises to fulfill a certain protocol. This is a contract.</p>
+
+<p>In Swift we need class protocols for that:</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">protocol</span> <span class="nl">CurrentUserAccessor</span> <span class="p">:</span> <span class="k">class</span><span class="p">{</span>
+    <span class="n">var</span> <span class="nl">currentUser</span> <span class="p">:</span> <span class="n">User</span><span class="o">?</span> <span class="p">{</span><span class="n">set</span> <span class="n">get</span><span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>That's it. That is our contract.<br/>
+As  we see our current <code>ActivityViewController</code> does already fulfill it — it
+just doesn't give this information to the tabBar controller.<br/>
+To change that, we just add the contract's name to the protocol list</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">,</span> <span class="n">CurrentUserAccessor</span> <span class="p">{</span>
+  <span class="n">var</span> <span class="nl">currentUser</span><span class="p">:</span> <span class="n">User</span><span class="o">?</span></code></pre></div>
+
+
+<p>Now before my tab bar controller brings a view controller to the screen, it will
+run this method to fulfill the viewcontrollers contracts, without even knowing
+them. It just knows the contracts:</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">func</span> <span class="nf">configureTargetViewController</span><span class="p">(</span><span class="nl">viewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="o">?</span><span class="p">){</span>
+    <span class="k">if</span> <span class="n">let</span> <span class="n">tvc</span> <span class="o">=</span> <span class="n">viewController</span> <span class="p">{</span>
+
+        <span class="k">if</span> <span class="n">let</span> <span class="n">apiManagerAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">APIManagerAccessor</span><span class="p">{</span>
+            <span class="n">apiManagerAccessor</span><span class="p">.</span><span class="n">apiManager</span> <span class="o">=</span> <span class="n">apiManager</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">let</span> <span class="n">readerOpeningViewController</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">ReaderOpener</span><span class="p">{</span>
+            <span class="n">readerOpeningViewController</span><span class="p">.</span><span class="n">readerManager</span> <span class="o">=</span> <span class="n">readerManager</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">let</span> <span class="n">applicationAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">ApplicationAccessor</span><span class="p">{</span>
+            <span class="n">applicationAccessor</span><span class="p">.</span><span class="n">application</span> <span class="o">=</span> <span class="bp">UIApplication</span><span class="p">.</span><span class="n">sharedApplication</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">let</span> <span class="n">currentUserAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">CurrentUserAccessor</span><span class="p">{</span>
+            <span class="n">currentUserAccessor</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">let</span> <span class="n">notificationCenterAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">NotificationCenterAccessor</span><span class="p">{</span>
+            <span class="n">notificationCenterAccessor</span><span class="p">.</span><span class="n">notificationCenter</span> <span class="o">=</span> <span class="bp">NSNotificationCenter</span><span class="p">.</span><span class="n">defaultCenter</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>I think, this is pretty cool and I apply it for other parts of the code as well.</p>
+
+<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">override</span> <span class="n">func</span> <span class="nf">prepareForSegue</span><span class="p">(</span><span class="nl">segue</span><span class="p">:</span> <span class="bp">UIStoryboardSegue</span><span class="p">,</span> <span class="nl">sender</span><span class="p">:</span> <span class="n">AnyObject</span><span class="o">?</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">let</span> <span class="n">currentUserAcceesor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">CurrentUserAccessor</span><span class="p">{</span>
+        <span class="n">currentUserAcceesor</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">let</span> <span class="n">apiManagerAccessor</span> <span class="o">=</span> <span class="n">segue</span><span class="p">.</span><span class="n">destinationViewController</span>  <span class="n">as</span><span class="o">?</span> <span class="n">APIManagerAccessor</span><span class="p">{</span>
+        <span class="n">apiManagerAccessor</span><span class="p">.</span><span class="n">apiManager</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">apiManager</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<h2>tl;dr</h2>
+
+<ul>
+<li>Singletons should be passed into a class and used as any member inside it</li>
+<li>By using contracts we can easily increase decoupling. Usually we don't need to
+know the class of an object but rather it capabilities.</li>
+<li>Protocols are an easy way to formulate contracts.</li>
+</ul>
+
+
+  </div>
+  <div class="span4">
+  </div>
+
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+      var disqus_shortname = 'vikingosegundo'; // required: replace example with your forum shortname
+
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+</div>
+</div>
+</div>
+</body>
+</html>
+

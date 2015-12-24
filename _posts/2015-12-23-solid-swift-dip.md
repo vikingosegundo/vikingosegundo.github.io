@@ -13,20 +13,20 @@ mainly for the iOS and Mac platforms. I will not start with the *S*, but with th
 What does the DIP state?
 
 > High-level modules should not depend on low-level modules. Both should depend on abstractions.  
->
+
 > Abstractions should not depend on details. Details should depend on abstractions.
 
 In context of Swift we could say
 
 > High-level types should not depend on low-level types, both should depend on protocols.  
->  
+
 > Protocols should not depend on details. Details should depend on protocols.
 
 ## Evolution of a struct
 
 lets say we have a struct to keep track of the hours we worked each day.
 
-{% highlight objc %}
+{% highlight swift %}
 struct TrackedHours {
 
     let date: NSDate
@@ -42,7 +42,7 @@ struct TrackedHours {
 Now this struct does want we want, but it might be a little tedious to use, as
 we first must create a NSDate instance to pass it in.  
 
-{% highlight objc %}
+{% highlight swift %}
 TrackedHours(date: { let c = NSDateComponents(); c.day = 29; c.month = 11; c.year = 2015;  return NSCalendar.currentCalendar().dateFromComponents(c)!}(), duration: 7),
 {% endhighlight %}
 
@@ -53,7 +53,7 @@ We could add an init that takes a date string and creates a date formatter to us
 As `dateFromString()` can return `nil`, we introduce some error handling
 
 
-{% highlight objc %}
+{% highlight swift %}
 
 enum TrackedHoursError: ErrorType {
     case InvalidDate
@@ -81,7 +81,7 @@ struct TrackedHours {
 
 Now the struct is much easier to use
 
-{% highlight objc %}
+{% highlight swift %}
 try? TrackedHours(dateString: "Nov 29, 2015", time: 7)
 {% endhighlight %}
 
@@ -97,13 +97,13 @@ Well, yes: Dependency Injection (DI) is one way of conform to the Dependency Inv
 
 Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simple:
 
-> «Dependency injection means giving an object its instance variables. Really. That's it.» — [James Shore](http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html)
+> Dependency injection means giving an object its instance variables. Really. That's it. — [James Shore](http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html)
 
 So this means we could just add a date formatter object to our struct, but actually we don't need to write it to a property,
 but that is an implementation detail. Only the convenient init needs to use the
 formatter, we don't need to keep it.
 
-{% highlight objc %}
+{% highlight swift %}
 enum TrackedHoursError: ErrorType {
     case InvalidDate
 }
@@ -128,7 +128,7 @@ struct TrackedHours {
 
 Now we can pas in a date formatter with the format we need.
 
-{% highlight objc %}
+{% highlight swift %}
 let dateFormatter = NSDateFormatter()
 dateFormatter.dateFormat = "MMM d, y"
 try? TrackedHours(dateFormatter: dateFormatter, dateString: "Nov 29, 2015", duration: 7),
@@ -144,7 +144,7 @@ Well, let us create one using an `extension`
 
 For now e will give the protocol the only method we need from `NSDateFormatter`
 
-{% highlight objc %}
+{% highlight swift %}
 protocol DateFormatting {
     func dateFromString(string: String) -> NSDate?
 }
@@ -153,14 +153,14 @@ protocol DateFormatting {
 and create an empty extension to indicate that NSDateFormatter implements the
 protocol.
 
-{% highlight objc %}
+{% highlight swift %}
 extension NSDateFormatter : DateFormatting {
 }
 {% endhighlight %}
 
 thats it! Now we can type the `dateFormatter` parameter as `DateFormatting`
 
-{% highlight objc %}
+{% highlight swift %}
 struct TrackedHours {
 
     let date: NSDate

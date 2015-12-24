@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Manuel Meyer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+
+  <link href="/stylesheets/more.css" rel="stylesheet">
+  <link href="/stylesheets/syntax.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="header">
+    <a href="/"><div class="avatar">&nbsp;</div></a>
+      <div class="personal-details">
+        <a href="/"><h1>Manuel Meyer</h1></a>
+        <p>
+          Software Engineer
+        </p>
+        <ul>
+          <li><a href="http://stackoverflow.com/users/106435/vikingosegundo">stackoverflow</a></li>
+          <li><a href="http://github.com/vikingosegundo">github</a></li>
+          <li><a href="http://twitter.com/vikingosegundo">twitter</a></li>
+        </ul>
+      </div>
+  </div>
+
+  <div class="container">
+
+<div id="content">
+
+<div class="row-fluid">
+  <div class="span8">
+    <h1>SOLID Swift, Dependency Inversion Principle</h1>
+
+    <p>This is he first article in a series about applying the SOLID principles in Swift,
+mainly for the iOS and Mac platforms. I will not start with the <em>S</em>, but with the <em>D</em>
+— The Dependency Inversion Principle, DIP</p>
+
+<!--break-->
+
+
+<p>What does the DIP state?</p>
+
+<blockquote><p>High-level modules should not depend on low-level modules. Both should depend on abstractions.</p>
+
+<p>Abstractions should not depend on details. Details should depend on abstractions.</p></blockquote>
+
+<p>In context of Swift we could say</p>
+
+<blockquote><p>High-level types should not depend on low-level types, both should depend on protocols.</p>
+
+<p>Protocols should not depend on details. Details should depend on protocols.</p></blockquote>
+
+<h2>Evolution of a struct</h2>
+
+<p>lets say we have a struct to keep track of the hours we worked each day.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+
+    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
+    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+
+    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>Now this struct does want we want, but it might be a little tedious to use, as
+we first must create a NSDate instance to pass it in.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">TrackedHours</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="p">{</span> <span class="k">let</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">NSDateComponents</span><span class="p">();</span> <span class="n">c</span><span class="p">.</span><span class="n">day</span> <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="n">c</span><span class="p">.</span><span class="n">month</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="n">c</span><span class="p">.</span><span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span><span class="p">;</span>  <span class="k">return</span> <span class="bp">NSCalendar</span><span class="p">.</span><span class="n">currentCalendar</span><span class="p">().</span><span class="n">dateFromComponents</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">!</span><span class="p">}(),</span> <span class="nl">duration</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span></code></pre></div>
+
+
+<p>We could add an init that takes a date string and creates a date formatter to use
+<code>dateFromString()</code> to create the date.<br/>
+As <code>dateFromString()</code> can return <code>nil</code>, we introduce some error handling</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">InvalidDate</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+
+    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
+    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+
+    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
+    <span class="p">}</span>
+
+    <span class="k">init</span> <span class="p">(</span><span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="n">throws</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="n">dateFormatter</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">()</span>
+        <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MMM d, y&quot;</span>
+        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
+        <span class="n">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="n">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
+        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>Now the struct is much easier to use</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">try</span><span class="o">?</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;Nov 29, 2015&quot;</span><span class="p">,</span> <span class="nl">time</span><span class="p">:</span> <span class="mi">7</span><span class="p">)</span></code></pre></div>
+
+
+<p>But we have a hidden dependency, as it depends on NSDateFormatter now. Further-more
+we are tied to a single date format. If the user of this struct needs to deal with
+other formats, the convenient init is useless.</p>
+
+<p>Instead we should inject any dependency.</p>
+
+<p>Dependency <em>Injection</em>? Wasn't this article suppose to cover Dependency <em>Inversion</em>?</p>
+
+<p>Well, yes: Dependency Injection (DI) is one way of conform to the Dependency Inversion Principle (DIP).</p>
+
+<p>Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simple:</p>
+
+<blockquote><p>Dependency injection means giving an object its instance variables. Really. That's it. — <a href="http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html">James Shore</a></p></blockquote>
+
+<p>So this means we could just add a date formatter object to our struct, but actually we don't need to write it to a property,
+but that is an implementation detail. Only the convenient init needs to use the
+formatter, we don't need to keep it.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">InvalidDate</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+
+    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
+    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+
+    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
+    <span class="p">}</span>
+
+    <span class="k">init</span> <span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span><span class="bp">NSDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="n">throws</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
+        <span class="n">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="n">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
+        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>Now we can pas in a date formatter with the format we need.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="n">dateFormatter</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">()</span>
+<span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MMM d, y&quot;</span>
+<span class="n">try</span><span class="o">?</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">dateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;Nov 29, 2015&quot;</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span></code></pre></div>
+
+
+<p>Now our struct complies to Dependency Injection, and in most cases this is just as good as perfect —
+but in regards to Dependency <em>Injection</em> it isn't perfect. Our struct depends on a concrete
+NSDateFormatter, rather than on a protocol or abstraction. Sou we should type the <code>dateFormatter</code>
+parameter in the <code>init</code> with an protocol that <code>NSDateFormatter</code> implements. But there
+isn't any.</p>
+
+<p>Well, let us create one using an <code>extension</code></p>
+
+<p>For now e will give the protocol the only method we need from <code>NSDateFormatter</code></p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>
+    <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>and create an empty extension to indicate that NSDateFormatter implements the
+protocol.</p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">extension</span> <span class="nl">NSDateFormatter</span> <span class="p">:</span> <span class="n">DateFormatting</span> <span class="p">{</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>thats it! Now we can type the <code>dateFormatter</code> parameter as <code>DateFormatting</code></p>
+
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+
+    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
+    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+
+    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
+    <span class="p">}</span>
+
+    <span class="k">init</span> <span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span><span class="n">DateFormatting</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="n">throws</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
+        <span class="n">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="n">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
+        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+
+<p>But why is it better to type it as the protocol and not the concrete type <code>NSDateFormatter</code>?</p>
+
+<p>Imagine your data about the tracked hours comes from different sources in different formats.
+Now it is easy to create an instance that conforms to <code>DateFormatting</code> by keeping
+a list of date formatter and ask each of it to create a date from a string, it
+would be a light weight proxy.</p>
+
+  </div>
+  <div class="span4">
+  </div>
+
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+      /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+      var disqus_shortname = 'vikingosegundo'; // required: replace example with your forum shortname
+
+      /* * * DON'T EDIT BELOW THIS LINE * * */
+      (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+</div>
+</div>
+</div>
+</body>
+</html>
+

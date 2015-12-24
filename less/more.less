@@ -1,5 +1,6 @@
 @header-color:white;
 @linkcolor: #34495e;
+@quote-color: hsla(212, 31%, 44%, 1);
 .clearfix{
   &:before, &:after{ content:""; display:table; }
   &:after{ clear: both; }
@@ -117,6 +118,39 @@ h1{
   line-height:1.4em;
 }
 
+blockquote{
+  display:block;
+  background: #fff;
+  padding: 15px 20px 15px 45px;
+  margin: 0 0 20px;
+  position: relative;
+  
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #666;
+  text-align: justify;
+
+
+  border-left: .5em solid @quote-color;
+  border-right: .2em solid @quote-color;
+
+  -moz-box-shadow: 2px 2px 15px #ccc;
+  -webkit-box-shadow: 2px 2px 15px #ccc;
+  box-shadow: 2px 2px 15px #ccc;
+
+  :before {
+    content: "\201C";
+    font-family: Georgia, serif;
+    font-size: 60px;
+    font-weight: bold;
+    color: @quote-color;
+
+    position: absolute;
+    left: 10px;
+    top:5px;
+  }
+}
 
 .avatar-image(){
   background-repeat: no-repeat;

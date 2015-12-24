@@ -6,6 +6,9 @@
 .clearfix:after {
   clear: both;
 }
+.postContentPadding {
+  padding: 0 1em 1em 1em;
+}
 html,
 body {
   border: 0;
@@ -155,6 +158,33 @@ h1 {
   font-weight: 100;
   line-height: 1.4em;
 }
+blockquote {
+  display: block;
+  background: #fff;
+  padding: 15px 20px 15px 45px;
+  margin: 0 0 20px;
+  position: relative;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #666;
+  text-align: justify;
+  border-left: 0.5em solid #4d6e93;
+  border-right: 0.2em solid #4d6e93;
+  -moz-box-shadow: 2px 2px 15px #ccc;
+  -webkit-box-shadow: 2px 2px 15px #ccc;
+  box-shadow: 2px 2px 15px #ccc;
+}
+blockquote :before {
+  content: "\201C";
+  font-family: Georgia, serif;
+  font-size: 60px;
+  font-weight: bold;
+  color: #4d6e93;
+  position: absolute;
+  left: 10px;
+  top: 5px;
+}
 #header {
   clear: both;
   height: 112px;
@@ -214,20 +244,21 @@ h1 {
   padding-top: 1em;
   color: #34495e;
 }
+#content ul {
+  padding-left: 2em;
+  list-style-type: square;
+}
 #content p {
+  padding: 0 1em 1em 1em;
   vertical-align: middle;
   margin: auto;
 }
 #content p a {
   color: #34495e;
 }
-#content ul {
-  padding-left: 2em;
-  list-style-type: square;
-}
 #content .post {
   min-width: 320px;
-  height: 500px;
+  min-height: 560px;
   width: 50%;
   margin: auto;
   float: left;
@@ -247,12 +278,10 @@ h1 {
 #content .post div {
   line-height: 1.4em;
 }
-#content .post p {
-  padding: 0 1em;
-}
 #content .post_detail {
   min-width: 320px;
   max-width: 900px;
+  padding: 0 1em 1em 1em;
 }
 #content .post_detail:before,
 #content .post_detail:after {

@@ -118,7 +118,7 @@ other formats, the convenient init is useless.</p>
 
 <p>Well, yes: Dependency Injection (DI) is one way of conform to the Dependency Inversion Principle (DIP).</p>
 
-<p>Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simple:</p>
+<p>Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simpler:</p>
 
 <blockquote><p>Dependency injection means giving an object its instance variables. Really. That's it. — <a href="http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html">James Shore</a></p></blockquote>
 
@@ -148,7 +148,7 @@ formatter, we don't need to keep it.</p>
 <span class="p">}</span></code></pre></div>
 
 
-<p>Now we can pas in a date formatter with the format we need.</p>
+<p>Now we can pass in a date formatter with the format we need.</p>
 
 <div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="n">dateFormatter</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">()</span>
 <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MMM d, y&quot;</span>
@@ -156,14 +156,14 @@ formatter, we don't need to keep it.</p>
 
 
 <p>Now our struct complies to Dependency Injection, and in most cases this is just as good as perfect —
-but in regards to Dependency <em>Injection</em> it isn't perfect. Our struct depends on a concrete
-NSDateFormatter, rather than on a protocol or abstraction. Sou we should type the <code>dateFormatter</code>
+but in regards to Dependency <em>Inversion</em> it isn't perfect. Our struct depends on a concrete
+NSDateFormatter, rather than on a protocol or abstraction. We should type the <code>dateFormatter</code>
 parameter in the <code>init</code> with an protocol that <code>NSDateFormatter</code> implements. But there
-isn't any.</p>
+isn't any available.</p>
 
-<p>Well, let us create one using an <code>extension</code></p>
+<p>Well, let us create one using an <code>extension</code>.</p>
 
-<p>For now e will give the protocol the only method we need from <code>NSDateFormatter</code></p>
+<p>For now we will give the protocol the only method we need from <code>NSDateFormatter</code></p>
 
 <div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>
     <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span>
@@ -177,7 +177,7 @@ protocol.</p>
 <span class="p">}</span></code></pre></div>
 
 
-<p>thats it! Now we can type the <code>dateFormatter</code> parameter as <code>DateFormatting</code></p>
+<p>Thats it! Now we can type the <code>dateFormatter</code> parameter as <code>DateFormatting</code></p>
 
 <div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
 

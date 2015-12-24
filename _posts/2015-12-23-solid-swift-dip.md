@@ -95,7 +95,7 @@ Dependency *Injection*? Wasn't this article suppose to cover Dependency *Inversi
 
 Well, yes: Dependency Injection (DI) is one way of conform to the Dependency Inversion Principle (DIP).
 
-Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simple:
+Often your hear about Dependency Injection Frameworks, Reflection,… , but seriously: It is much simpler:
 
 > Dependency injection means giving an object its instance variables. Really. That's it. — [James Shore](http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html)
 
@@ -126,7 +126,7 @@ struct TrackedHours {
 }
 {% endhighlight %}
 
-Now we can pas in a date formatter with the format we need.
+Now we can pass in a date formatter with the format we need.
 
 {% highlight swift %}
 let dateFormatter = NSDateFormatter()
@@ -135,14 +135,14 @@ try? TrackedHours(dateFormatter: dateFormatter, dateString: "Nov 29, 2015", dura
 {% endhighlight %}
 
 Now our struct complies to Dependency Injection, and in most cases this is just as good as perfect —
-but in regards to Dependency *Injection* it isn't perfect. Our struct depends on a concrete
-NSDateFormatter, rather than on a protocol or abstraction. Sou we should type the `dateFormatter`
+but in regards to Dependency *Inversion* it isn't perfect. Our struct depends on a concrete
+NSDateFormatter, rather than on a protocol or abstraction. We should type the `dateFormatter`
 parameter in the `init` with an protocol that `NSDateFormatter` implements. But there
-isn't any.
+isn't any available.
 
-Well, let us create one using an `extension`
+Well, let us create one using an `extension`.
 
-For now e will give the protocol the only method we need from `NSDateFormatter`
+For now we will give the protocol the only method we need from `NSDateFormatter`
 
 {% highlight swift %}
 protocol DateFormatting {
@@ -158,7 +158,7 @@ extension NSDateFormatter : DateFormatting {
 }
 {% endhighlight %}
 
-thats it! Now we can type the `dateFormatter` parameter as `DateFormatting`
+Thats it! Now we can type the `dateFormatter` parameter as `DateFormatting`
 
 {% highlight swift %}
 struct TrackedHours {

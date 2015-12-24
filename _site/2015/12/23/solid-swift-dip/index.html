@@ -210,11 +210,9 @@ date formatters.</p>
 <p>A word of warning: You should <strong>NEVER</strong> handle different date formats like this.<br/>
 You should know with data source uses which date format and normalize it upon receiving data.<br/>
 If you uncomment the line marked /*⛈*/, you will see that an <code>AmbigousDate</code> error is thrown,
-as the 2nd and the 3rd dateformatters will both understand it — differently.</p>
+as the 2nd and the 3rd date formatters will both understand it — differently.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="c1">//: [Previous](@previous)</span>
-
-<span class="k">import</span> <span class="n">Foundation</span>
+<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">import</span> <span class="n">Foundation</span>
 
 
 <span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>

@@ -192,11 +192,9 @@ date formatters.
 A word of warning: You should **NEVER** handle different date formats like this.  
 You should know with data source uses which date format and normalize it upon receiving data.  
 If you uncomment the line marked /\*⛈\*/, you will see that an `AmbigousDate` error is thrown,
-as the 2nd and the 3rd dateformatters will both understand it — differently.
+as the 2nd and the 3rd date formatters will both understand it — differently.
 
 {% highlight swift %}
-//: [Previous](@previous)
-
 import Foundation
 
 
@@ -309,5 +307,4 @@ do {
 }  catch TrackedHoursError.AmbigousDate(let string){
     print("more than one dateformatter were able to interprete this string: \(string)")
 }
-
 {% endhighlight %}

@@ -26,7 +26,7 @@ In context of Swift we could say
 
 lets say we have a struct to keep track of the hours we worked each day.
 
-{% highlight swift %}
+``` objc
 struct TrackedHours {
 
     let date: NSDate
@@ -37,14 +37,14 @@ struct TrackedHours {
         self.duration = duration
     }
 }
-{% endhighlight %}
+```
 
 Now this struct does want we want, but it might be a little tedious to use, as
 we first must create a NSDate instance to pass it in.  
 
-{% highlight swift %}
+``` objc
 TrackedHours(date: { let c = NSDateComponents(); c.day = 29; c.month = 11; c.year = 2015;  return NSCalendar.currentCalendar().dateFromComponents(c)!}(), duration: 7),
-{% endhighlight %}
+```
 
 
 
@@ -53,7 +53,7 @@ We could add an init that takes a date string and creates a date formatter to us
 As `dateFromString()` can return `nil`, we introduce some error handling
 
 
-{% highlight swift %}
+``` objc
 
 enum TrackedHoursError: ErrorType {
     case InvalidDate
@@ -77,13 +77,13 @@ struct TrackedHours {
         self.init(date: date!, duration:duration)
     }
 }
-{% endhighlight %}
+```
 
 Now the struct is much easier to use
 
-{% highlight swift %}
+``` objc
 try? TrackedHours(dateString: "Nov 29, 2015", time: 7)
-{% endhighlight %}
+```
 
 But we have a hidden dependency, as it depends on NSDateFormatter now. Further-more
 we are tied to a single date format. If the user of this struct needs to deal with
@@ -103,7 +103,7 @@ So this means we could just add a date formatter object to our struct, but actua
 but that is an implementation detail. Only the convenient init needs to use the
 formatter, we don't need to keep it.
 
-{% highlight swift %}
+``` objc
 enum TrackedHoursError: ErrorType {
     case InvalidDate
 }
@@ -124,15 +124,15 @@ struct TrackedHours {
         self.init(date: date!, duration:duration)
     }
 }
-{% endhighlight %}
+```
 
 Now we can pas in a date formatter with the format we need.
 
-{% highlight swift %}
+``` objc
 let dateFormatter = NSDateFormatter()
 dateFormatter.dateFormat = "MMM d, y"
 try? TrackedHours(dateFormatter: dateFormatter, dateString: "Nov 29, 2015", duration: 7),
-{% endhighlight %}
+```
 
 Now our struct complies to Dependency Injection, and in most cases this is just as good as perfect —
 but in regards to Dependency *Injection* it isn't perfect. Our struct depends on a concrete
@@ -144,23 +144,23 @@ Well, let us create one using an `extension`
 
 For now e will give the protocol the only method we need from `NSDateFormatter`
 
-{% highlight swift %}
+``` objc
 protocol DateFormatting {
     func dateFromString(string: String) -> NSDate?
 }
-{% endhighlight %}
+```
 
 and create an empty extension to indicate that NSDateFormatter implements the
 protocol.
 
-{% highlight swift %}
+``` objc
 extension NSDateFormatter : DateFormatting {
 }
-{% endhighlight %}
+```
 
 thats it! Now we can type the `dateFormatter` parameter as `DateFormatting`
 
-{% highlight swift %}
+``` objc
 struct TrackedHours {
 
     let date: NSDate
@@ -177,7 +177,7 @@ struct TrackedHours {
         self.init(date: date!, duration:duration)
     }
 }
-{% endhighlight %}
+```
 
 But why is it better to type it as the protocol and not the concrete type `NSDateFormatter`?
 
@@ -194,7 +194,7 @@ You should know with data source uses which date format and normalize it upon re
 If you uncomment the line marked /\*⛈\*/, you will see that an `AmbigousDate` error is thrown,
 as the 2nd and the 3rd date formatters will both understand it — differently.
 
-{% highlight swift %}
+``` swift
 import Foundation
 
 
@@ -307,4 +307,4 @@ do {
 }  catch TrackedHoursError.AmbigousDate(let string){
     print("more than one dateformatter were able to interprete this string: \(string)")
 }
-{% endhighlight %}
+```

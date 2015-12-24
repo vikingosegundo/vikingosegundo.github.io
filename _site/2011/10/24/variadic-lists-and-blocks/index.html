@@ -42,26 +42,26 @@ But now I found a situation, where it makes much more sense to have a veridic li
 
 <p>I wrote a Category method on NSArray, that allows the user, to filter the array by blocks and create a dictionary with given keys.</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span> <span class="nf">dictionaryByFilteringWithBlocks:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">filterBlocks</span>
-                                           <span class="nf">forKeys:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">keys</span></code></pre></div>
-
-
-
+<pre><code class="objc">
+- (NSDictionary *) dictionaryByFilteringWithBlocks:(NSArray *)filterBlocks
+                                           forKeys:(NSArray *)keys
+</code></pre>
 
 <!--break-->
 
 
 <p>And it is used like</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="bp">NSArray</span> <span class="o">*</span><span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSArray</span> <span class="nl">arrayWithObjects</span><span class="p">:</span>
-                <span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="p">[</span><span class="n">element</span> <span class="nl">hasPrefix</span><span class="p">:</span><span class="s">@&quot;a&quot;</span><span class="p">];},</span>
-                <span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="p">[</span><span class="n">element</span> <span class="nl">hasPrefix</span><span class="p">:</span><span class="s">@&quot;c&quot;</span><span class="p">];},</span>
-                <span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="p">[</span><span class="n">element</span> <span class="nl">hasPrefix</span><span class="p">:</span><span class="s">@&quot;z&quot;</span><span class="p">];},</span>
-           <span class="nb">nil</span><span class="p">];</span>
+<pre><code class="objc">
+NSArray *blocks = [NSArray arrayWithObjects:
+                ^BOOL(id element) {return [element hasPrefix:@"a"];},
+                ^BOOL(id element) {return [element hasPrefix:@"c"];},
+                ^BOOL(id element) {return [element hasPrefix:@"z"];},
+           nil];
 
-<span class="bp">NSArray</span> <span class="o">*</span><span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSArray</span> <span class="nl">arrayWithObjects</span><span class="p">:</span><span class="s">@&quot;a&quot;</span><span class="p">,</span><span class="s">@&quot;c&quot;</span><span class="p">,</span> <span class="s">@&quot;z&quot;</span><span class="p">,</span> <span class="nb">nil</span><span class="p">];</span>
-<span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">dictionaryByFilteringWithBlocks</span><span class="p">:</span><span class="n">blocks</span> <span class="nl">forKeys</span><span class="p">:</span><span class="n">keys</span><span class="p">];</span></code></pre></div>
-
+NSArray *keys = [NSArray arrayWithObjects:@"a",@"c", @"z", nil];
+NSDictionary *dict = [array dictionaryByFilteringWithBlocks:blocks forKeys:keys];
+</code></pre>
 
 <p>it works as expected, but has two flaws:</p>
 
@@ -73,73 +73,70 @@ But now I found a situation, where it makes much more sense to have a veridic li
 
 <p>I think, that is reason enough to give veriadic methods a try — and here we go:</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span> <span class="nf">dictionaryByFilteringWithBlocksAndKeys:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">firstBlock</span><span class="p">,</span> <span class="kt">id</span> <span class="n">firstKey</span><span class="p">,...</span> <span class="n">NS_REQUIRES_NIL_TERMINATION</span><span class="p">;</span>
+<pre><code class="objc">- (NSDictionary *) dictionaryByFilteringWithBlocksAndKeys:(BOOL (^)(id element))firstBlock, id firstKey,... NS_REQUIRES_NIL_TERMINATION;
 
-<span class="p">-(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">dictionaryByFilteringWithBlocksAndKeys:</span><span class="p">(</span><span class="n">TestBlock</span><span class="p">)</span><span class="nv">firstBlock</span><span class="p">,</span> <span class="kt">id</span> <span class="n">firstKey</span><span class="p">,...</span>
-<span class="p">{</span>
-    <span class="bp">NSMutableDictionary</span> <span class="o">*</span><span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableDictionary</span> <span class="n">dictionary</span><span class="p">];</span>
-    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">blocks</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">NSMutableArray</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithObjects</span><span class="p">:</span><span class="n">firstBlock</span><span class="p">,</span> <span class="nb">nil</span><span class="p">];</span>
-    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="nl">arrayWithObject</span><span class="p">:</span><span class="n">firstKey</span><span class="p">];</span>
+-(NSDictionary *)dictionaryByFilteringWithBlocksAndKeys:(TestBlock)firstBlock, id firstKey,...
+{
+    NSMutableDictionary *results = [NSMutableDictionary dictionary];
+    NSMutableArray *blocks = [[NSMutableArray alloc] initWithObjects:firstBlock, nil];
+    NSMutableArray *keys = [NSMutableArray arrayWithObject:firstKey];
 
-    <span class="kt">va_list</span> <span class="n">args</span><span class="p">;</span>
-    <span class="n">va_start</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">firstKey</span><span class="p">);</span>
-    <span class="k">while</span> <span class="p">(</span><span class="nb">YES</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">TestBlock</span> <span class="n">block</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">TestBlock</span><span class="p">);</span>
+    va_list args;
+    va_start(args, firstKey);
+    while (YES) {
+        TestBlock block = va_arg(args, TestBlock);
 
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span> <span class="n">block</span><span class="p">)</span>
-            <span class="k">break</span><span class="p">;</span>
+        if (! block)
+            break;
 
-        <span class="p">[</span><span class="n">blocks</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">Block_copy</span><span class="p">(</span><span class="n">block</span><span class="p">)];</span>
-        <span class="kt">id</span> <span class="n">key</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="kt">id</span><span class="p">);</span>  
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">key</span><span class="p">)</span> <span class="p">[</span><span class="bp">NSException</span> <span class="nl">raise</span><span class="p">:</span><span class="s">@&quot;wrong number of arguments&quot;</span> <span class="nl">format</span><span class="p">:</span><span class="s">@&quot;n blocks need n keys&quot;</span><span class="p">,</span> <span class="nb">nil</span><span class="p">];</span>
-        <span class="p">[</span><span class="n">keys</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">key</span><span class="p">];</span>
-    <span class="p">}</span>
-    <span class="n">va_end</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>
+        [blocks addObject:Block_copy(block)];
+        id key = va_arg(args, id);  
+        if (!key) [NSException raise:@"wrong number of arguments" format:@"n blocks need n keys", nil];
+        [keys addObject:key];
+    }
+    va_end(args);
 
-    <span class="k">for</span><span class="p">(</span><span class="kt">id</span> <span class="n">key</span> <span class="k">in</span> <span class="n">keys</span><span class="p">){</span>
-        <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">filtered</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">]</span> <span class="p">;</span>
-        <span class="p">[</span><span class="n">results</span> <span class="nl">setObject</span><span class="p">:</span><span class="n">filtered</span> <span class="nl">forKey</span><span class="p">:</span><span class="n">key</span><span class="p">];</span>
-        <span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="n">block</span><span class="p">)(</span><span class="kt">id</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="n">blocks</span> <span class="nl">objectAtIndex</span><span class="p">:[</span><span class="n">keys</span> <span class="nl">indexOfObject</span><span class="p">:</span><span class="n">key</span><span class="p">]];</span>
-        <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">){</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">block</span><span class="p">(</span><span class="n">element</span><span class="p">)){</span>
-                <span class="p">[</span><span class="n">filtered</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">element</span><span class="p">];</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="k">for</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="n">block</span><span class="p">)(</span><span class="kt">id</span><span class="p">)</span> <span class="k">in</span> <span class="n">blocks</span><span class="p">){</span>
-        <span class="n">Block_release</span><span class="p">(</span><span class="n">block</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="p">[</span><span class="n">blocks</span> <span class="k">release</span><span class="p">];</span>
-    <span class="k">return</span>  <span class="n">results</span><span class="p">;</span>
-<span class="p">}</span></code></pre></div>
+    for(id key in keys){
+        NSMutableArray *filtered = [NSMutableArray array] ;
+        [results setObject:filtered forKey:key];
+        BOOL (^block)(id) = [blocks objectAtIndex:[keys indexOfObject:key]];
+        for (id element in self){
+            if (block(element)){
+                [filtered addObject:element];
+            }
+        }
+    }
+    for(BOOL (^block)(id) in blocks){
+        Block_release(block);
+    }
+    [blocks release];
+    return  results;
+}
+</code></pre>
 
-
-
-
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSArray</span> <span class="nl">arrayWithObjects</span><span class="p">:</span><span class="s">@&quot;a&quot;</span><span class="p">,</span> <span class="s">@&quot;aa&quot;</span><span class="p">,</span> <span class="s">@&quot;ab&quot;</span><span class="p">,</span> <span class="s">@&quot;cc&quot;</span><span class="p">,</span> <span class="s">@&quot;cd&quot;</span><span class="p">,</span> <span class="s">@&quot;dd&quot;</span><span class="p">,</span> <span class="nb">nil</span><span class="p">];</span>
-<span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">dictionaryByFilteringWithBlocksAndKeys</span><span class="p">:</span>
-                <span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="p">[</span><span class="n">element</span> <span class="nl">hasPrefix</span><span class="p">:</span><span class="s">@&quot;a&quot;</span><span class="p">];},</span><span class="s">@&quot;a&quot;</span><span class="p">,</span>
-                <span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="p">[</span><span class="n">element</span> <span class="nl">hasPrefix</span><span class="p">:</span><span class="s">@&quot;c&quot;</span><span class="p">];},</span><span class="s">@&quot;c&quot;</span><span class="p">,</span>
-             <span class="nb">nil</span><span class="p">];</span>
-<span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="n">dict</span><span class="p">);</span></code></pre></div>
-
+<pre><code class="objc">NSArray *array = [NSArray arrayWithObjects:@"a", @"aa", @"ab", @"cc", @"cd", @"dd", nil];
+NSDictionary *dict = [array dictionaryByFilteringWithBlocksAndKeys:
+                ^BOOL(id element) {return [element hasPrefix:@"a"];},@"a",
+                ^BOOL(id element) {return [element hasPrefix:@"c"];},@"c",
+             nil];
+NSLog(@"%@", dict);
+</code></pre>
 
 <p>result:</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">{</span>
-    <span class="n">a</span> <span class="o">=</span>     <span class="p">(</span>
-        <span class="n">a</span><span class="p">,</span>
-        <span class="n">aa</span><span class="p">,</span>
-        <span class="n">ab</span>
-    <span class="p">);</span>
-    <span class="n">c</span> <span class="o">=</span>     <span class="p">(</span>
-        <span class="n">cc</span><span class="p">,</span>
-        <span class="n">cd</span>
-    <span class="p">);</span>
-<span class="p">}</span></code></pre></div>
-
-
-
+<pre><code class="objc">
+{
+    a =     (
+        a,
+        aa,
+        ab
+    );
+    c =     (
+        cc,
+        cd
+    );
+}
+</code></pre>
 
   </div>
   <div class="span4">

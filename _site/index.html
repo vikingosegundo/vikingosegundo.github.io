@@ -83,27 +83,25 @@ coupling mainly through the excessive use of singletons — they were everywhere
 
 <h3>Example Usage</h3>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
-<span class="cp">#import &quot;NSArray+Comparator&quot;</span>
+<pre><code class="objc">#import &lt;Foundation/Foundation.h&gt;
+#import "NSArray+Comparator"
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
-    <span class="k">@autoreleasepool</span> <span class="p">{</span>
-        <span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="l">@[</span><span class="mi">@4</span><span class="p">,</span> <span class="mi">@9</span><span class="p">,</span> <span class="mi">@2</span><span class="p">,</span> <span class="mi">@1</span><span class="p">,</span> <span class="mi">@7</span><span class="l">]</span><span class="p">;</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">vs_sortedArrayUsingComparator</span><span class="p">:</span><span class="o">^</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">)</span>
-        <span class="p">{</span>
-            <span class="k">return</span>  <span class="p">[</span><span class="n">obj1</span> <span class="nl">compare</span><span class="p">:</span><span class="n">obj2</span><span class="p">];</span>
-        <span class="p">}];</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span></code></pre></div>
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        NSArray *array = @[@4, @9, @2, @1, @7];
+        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2)
+        {
+            return  [obj1 compare:obj2];
+        }];
+    }
+    return 0;
+}
+</code></pre>
 
-
-<p>Results in</p>
-
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span> <span class="p">)</span></code></pre></div>
-
-
-
+<p>Results in
+<code>objc
+( 1, 2, 4, 7, 9 )
+</code></p>
 
 
 
@@ -161,11 +159,10 @@ But now I found a situation, where it makes much more sense to have a veridic li
 
 <p>I wrote a Category method on NSArray, that allows the user, to filter the array by blocks and create a dictionary with given keys.</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span> <span class="nf">dictionaryByFilteringWithBlocks:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">filterBlocks</span>
-                                           <span class="nf">forKeys:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">keys</span></code></pre></div>
-
-
-
+<pre><code class="objc">
+- (NSDictionary *) dictionaryByFilteringWithBlocks:(NSArray *)filterBlocks
+                                           forKeys:(NSArray *)keys
+</code></pre>
 
 
 
@@ -193,17 +190,16 @@ Every language should have functional tools like pythons List Comprehensions, bu
 When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
 here we go:</p>
 
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">quicksort</span><span class="p">(</span><span class="n">alist</span><span class="p">):</span>
-  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">alist</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="n">alist</span>
-    <span class="n">pivotelement</span> <span class="o">=</span> <span class="n">alist</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
-    <span class="n">left</span>  <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&lt;</span> <span class="n">pivotelement</span><span class="p">]</span>
-    <span class="n">right</span> <span class="o">=</span> <span class="p">[</span><span class="n">element</span> <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">alist</span> <span class="k">if</span> <span class="n">element</span> <span class="o">&gt;=</span> <span class="n">pivotelement</span><span class="p">]</span>
-  <span class="k">return</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">pivotelement</span><span class="p">]</span> <span class="o">+</span> <span class="n">quicksort</span><span class="p">(</span><span class="n">right</span><span class="p">)</span></code></pre></div>
+<pre><code class="python">
+def quicksort(alist):
+  if len(alist) &lt;= 1: return alist
+    pivotelement = alist.pop()
+    left  = [element for element in alist if element &lt; pivotelement]
+    right = [element for element in alist if element &gt;= pivotelement]
+  return quicksort(left) + [pivotelement] + quicksort(right)
+</code></pre>
 
-
-
-
-
+<p>  
 
 <p><a href="/2011/10/09/beat-this-python/">read more</a></p>
 

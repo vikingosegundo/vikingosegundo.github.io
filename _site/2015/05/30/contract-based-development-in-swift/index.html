@@ -69,19 +69,19 @@ uses them.</p>
 dangerous kind: We use singletons to fulfill dependencies from within a
 class. We might be tempted to write this:</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">{</span>
+<pre><code class="objc">class ActivityViewController: UIViewController{
 
-    <span class="c1">//....</span>
+    //....
 
-    <span class="n">func</span> <span class="n">buttonTappedInActivityCell</span><span class="p">(</span><span class="nl">cell</span><span class="p">:</span> <span class="n">ActivityTableCell</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="n">let</span> <span class="n">friendOrUserId</span> <span class="o">=</span> <span class="n">cell</span><span class="p">.</span><span class="n">activity</span><span class="o">?</span><span class="p">.</span><span class="n">actorReferenceId</span> <span class="p">{</span>
-            <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span><span class="o">!</span><span class="p">.</span><span class="n">befriend</span><span class="p">(</span><span class="n">friendOrUserId</span><span class="p">,</span> <span class="nl">success</span><span class="p">:</span> <span class="nb">nil</span><span class="p">,</span> <span class="nl">failure</span><span class="p">:</span> <span class="nb">nil</span><span class="p">);</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="c1">//....</span>
+    func buttonTappedInActivityCell(cell: ActivityTableCell) {
+        if let friendOrUserId = cell.activity?.actorReferenceId {
+            User.current()!.befriend(friendOrUserId, success: nil, failure: nil);
+        }
+    }
+    //....
 
-<span class="p">}</span></code></pre></div>
-
+}
+</code></pre>
 
 <p>This is problematic as this hides the dependencies of <code>ActivityViewController</code>,
 You'll have to scan the whole code to find them.<br/>
@@ -93,25 +93,26 @@ The problem is that we use the singleton as a singleton from with-in a class.</p
 We define a property that we write our singleton to. This will increase the
 visibility of the dependency immensely.</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">{</span>
-    <span class="n">var</span> <span class="nl">currentUser</span><span class="p">:</span> <span class="n">User</span><span class="o">?</span>
-    <span class="c1">//....</span>
+<pre><code class="objc">class ActivityViewController: UIViewController{
+    var currentUser: User?
+    //....
 
-    <span class="n">func</span> <span class="n">buttonTappedInActivityCell</span><span class="p">(</span><span class="nl">cell</span><span class="p">:</span> <span class="n">ActivityTableCell</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="n">let</span> <span class="n">friendOrUserId</span> <span class="o">=</span> <span class="n">cell</span><span class="p">.</span><span class="n">activity</span><span class="o">?</span><span class="p">.</span><span class="n">actorReferenceId</span> <span class="p">{</span>
-            <span class="n">currentUser</span><span class="o">!</span><span class="p">.</span><span class="n">befriend</span><span class="p">(</span><span class="n">friendOrUserId</span><span class="p">,</span> <span class="nl">success</span><span class="p">:</span> <span class="nb">nil</span><span class="p">,</span> <span class="nl">failure</span><span class="p">:</span> <span class="nb">nil</span><span class="p">);</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="c1">//....</span>
+    func buttonTappedInActivityCell(cell: ActivityTableCell) {
+        if let friendOrUserId = cell.activity?.actorReferenceId {
+            currentUser!.befriend(friendOrUserId, success: nil, failure: nil);
+        }
+    }
+    //....
 
-<span class="p">}</span></code></pre></div>
-
+}
+</code></pre>
 
 <p>We just have to pass in an user object before you bring the view controller
 on the screen. This user object could be the singleton.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">activityViewController</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span></code></pre></div>
-
+<pre><code class="objc">
+activityViewController.currentUser = User.current()
+</code></pre>
 
 <p>This is simple, but you will gain so much if you stick to it:
 * higher decoupling
@@ -141,62 +142,63 @@ A delegate promises to fulfill a certain protocol. This is a contract.</p>
 
 <p>In Swift we need class protocols for that:</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">protocol</span> <span class="nl">CurrentUserAccessor</span> <span class="p">:</span> <span class="k">class</span><span class="p">{</span>
-    <span class="n">var</span> <span class="nl">currentUser</span> <span class="p">:</span> <span class="n">User</span><span class="o">?</span> <span class="p">{</span><span class="n">set</span> <span class="n">get</span><span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+<pre><code class="objc">protocol CurrentUserAccessor : class{
+    var currentUser : User? {set get}
+}
+</code></pre>
 
 <p>That's it. That is our contract.<br/>
 As  we see our current <code>ActivityViewController</code> does already fulfill it — it
 just doesn't give this information to the tabBar controller.<br/>
 To change that, we just add the contract's name to the protocol list</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">class</span> <span class="nl">ActivityViewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="p">,</span> <span class="n">CurrentUserAccessor</span> <span class="p">{</span>
-  <span class="n">var</span> <span class="nl">currentUser</span><span class="p">:</span> <span class="n">User</span><span class="o">?</span></code></pre></div>
-
+<pre><code class="objc">class ActivityViewController: UIViewController, CurrentUserAccessor {
+  var currentUser: User?
+</code></pre>
 
 <p>Now before my tab bar controller brings a view controller to the screen, it will
 run this method to fulfill the viewcontrollers contracts, without even knowing
 them. It just knows the contracts:</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">func</span> <span class="nf">configureTargetViewController</span><span class="p">(</span><span class="nl">viewController</span><span class="p">:</span> <span class="bp">UIViewController</span><span class="o">?</span><span class="p">){</span>
-    <span class="k">if</span> <span class="n">let</span> <span class="n">tvc</span> <span class="o">=</span> <span class="n">viewController</span> <span class="p">{</span>
+<pre><code class="objc">
+func configureTargetViewController(viewController: UIViewController?){
+    if let tvc = viewController {
 
-        <span class="k">if</span> <span class="n">let</span> <span class="n">apiManagerAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">APIManagerAccessor</span><span class="p">{</span>
-            <span class="n">apiManagerAccessor</span><span class="p">.</span><span class="n">apiManager</span> <span class="o">=</span> <span class="n">apiManager</span>
-        <span class="p">}</span>
+        if let apiManagerAccessor = tvc as? APIManagerAccessor{
+            apiManagerAccessor.apiManager = apiManager
+        }
 
-        <span class="k">if</span> <span class="n">let</span> <span class="n">readerOpeningViewController</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">ReaderOpener</span><span class="p">{</span>
-            <span class="n">readerOpeningViewController</span><span class="p">.</span><span class="n">readerManager</span> <span class="o">=</span> <span class="n">readerManager</span>
-        <span class="p">}</span>
+        if let readerOpeningViewController = tvc as? ReaderOpener{
+            readerOpeningViewController.readerManager = readerManager
+        }
 
-        <span class="k">if</span> <span class="n">let</span> <span class="n">applicationAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">ApplicationAccessor</span><span class="p">{</span>
-            <span class="n">applicationAccessor</span><span class="p">.</span><span class="n">application</span> <span class="o">=</span> <span class="bp">UIApplication</span><span class="p">.</span><span class="n">sharedApplication</span><span class="p">()</span>
-        <span class="p">}</span>
+        if let applicationAccessor = tvc as? ApplicationAccessor{
+            applicationAccessor.application = UIApplication.sharedApplication()
+        }
 
-        <span class="k">if</span> <span class="n">let</span> <span class="n">currentUserAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">CurrentUserAccessor</span><span class="p">{</span>
-            <span class="n">currentUserAccessor</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span>
-        <span class="p">}</span>
+        if let currentUserAccessor = tvc as? CurrentUserAccessor{
+            currentUserAccessor.currentUser = User.current()
+        }
 
-        <span class="k">if</span> <span class="n">let</span> <span class="n">notificationCenterAccessor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">NotificationCenterAccessor</span><span class="p">{</span>
-            <span class="n">notificationCenterAccessor</span><span class="p">.</span><span class="n">notificationCenter</span> <span class="o">=</span> <span class="bp">NSNotificationCenter</span><span class="p">.</span><span class="n">defaultCenter</span><span class="p">()</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+        if let notificationCenterAccessor = tvc as? NotificationCenterAccessor{
+            notificationCenterAccessor.notificationCenter = NSNotificationCenter.defaultCenter()
+        }
+    }
+}
+</code></pre>
 
 <p>I think, this is pretty cool and I apply it for other parts of the code as well.</p>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="n">override</span> <span class="n">func</span> <span class="nf">prepareForSegue</span><span class="p">(</span><span class="nl">segue</span><span class="p">:</span> <span class="bp">UIStoryboardSegue</span><span class="p">,</span> <span class="nl">sender</span><span class="p">:</span> <span class="n">AnyObject</span><span class="o">?</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="n">let</span> <span class="n">currentUserAcceesor</span> <span class="o">=</span> <span class="n">tvc</span> <span class="n">as</span><span class="o">?</span> <span class="n">CurrentUserAccessor</span><span class="p">{</span>
-        <span class="n">currentUserAcceesor</span><span class="p">.</span><span class="n">currentUser</span> <span class="o">=</span> <span class="n">User</span><span class="p">.</span><span class="n">current</span><span class="p">()</span>
-    <span class="p">}</span>
+<pre><code class="objc">override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    if let currentUserAcceesor = tvc as? CurrentUserAccessor{
+        currentUserAcceesor.currentUser = User.current()
+    }
 
-    <span class="k">if</span> <span class="n">let</span> <span class="n">apiManagerAccessor</span> <span class="o">=</span> <span class="n">segue</span><span class="p">.</span><span class="n">destinationViewController</span>  <span class="n">as</span><span class="o">?</span> <span class="n">APIManagerAccessor</span><span class="p">{</span>
-        <span class="n">apiManagerAccessor</span><span class="p">.</span><span class="n">apiManager</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">apiManager</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+    if let apiManagerAccessor = segue.destinationViewController  as? APIManagerAccessor{
+        apiManagerAccessor.apiManager = self.apiManager
+    }
+}
+</code></pre>
 
 <h2>tl;dr</h2>
 

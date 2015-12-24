@@ -32,7 +32,7 @@ But I know that singletons seduce us to take short circuits — those of the
 dangerous kind: We use singletons to fulfill dependencies from within a
 class. We might be tempted to write this:
 
-{% highlight objc %}
+``` objc
 class ActivityViewController: UIViewController{
 
     //....
@@ -45,7 +45,7 @@ class ActivityViewController: UIViewController{
     //....
 
 }
-{% endhighlight %}
+```
 
 This is problematic as this hides the dependencies of `ActivityViewController`,
 You'll have to scan the whole code to find them.  
@@ -58,7 +58,7 @@ We define a property that we write our singleton to. This will increase the
 visibility of the dependency immensely.
 
 
-{% highlight objc %}
+``` objc
 class ActivityViewController: UIViewController{
     var currentUser: User?
     //....
@@ -71,14 +71,15 @@ class ActivityViewController: UIViewController{
     //....
 
 }
-{% endhighlight %}
+```
 
 We just have to pass in an user object before you bring the view controller
 on the screen. This user object could be the singleton.
 
-{% highlight swift %}
+``` objc
+
 activityViewController.currentUser = User.current()
-{% endhighlight %}
+```
 
 This is simple, but you will gain so much if you stick to it:
 * higher decoupling
@@ -108,27 +109,27 @@ A delegate promises to fulfill a certain protocol. This is a contract.
 
 In Swift we need class protocols for that:
 
-{% highlight objc %}
+``` objc
 protocol CurrentUserAccessor : class{
     var currentUser : User? {set get}
 }
-{% endhighlight %}
+```
 
 That's it. That is our contract.  
 As  we see our current `ActivityViewController` does already fulfill it — it
 just doesn't give this information to the tabBar controller.  
 To change that, we just add the contract's name to the protocol list
 
-{% highlight objc %}
+``` objc
 class ActivityViewController: UIViewController, CurrentUserAccessor {
   var currentUser: User?
-{% endhighlight %}
+```
 
 Now before my tab bar controller brings a view controller to the screen, it will
 run this method to fulfill the viewcontrollers contracts, without even knowing
 them. It just knows the contracts:
 
-{% highlight objc %}
+``` objc
 
 func configureTargetViewController(viewController: UIViewController?){
     if let tvc = viewController {
@@ -154,14 +155,14 @@ func configureTargetViewController(viewController: UIViewController?){
         }
     }
 }
-{% endhighlight %}
+```
 
 
 I think, this is pretty cool and I apply it for other parts of the code as well.
 
 
 
-{% highlight objc %}
+``` objc
 override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
     if let currentUserAcceesor = tvc as? CurrentUserAccessor{
         currentUserAcceesor.currentUser = User.current()
@@ -171,7 +172,7 @@ override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         apiManagerAccessor.apiManager = self.apiManager
     }
 }
-{% endhighlight %}
+```
 
 ## tl;dr
 

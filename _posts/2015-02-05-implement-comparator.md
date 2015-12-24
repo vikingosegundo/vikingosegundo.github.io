@@ -15,7 +15,7 @@ in response to this [Stackoverflow question][1]
 
 
 ### Example Usage
-{% highlight objc %}
+``` objc
 #import <Foundation/Foundation.h>
 #import "NSArray+Comparator"
 
@@ -29,12 +29,12 @@ int main(int argc, const char * argv[]) {
     }
     return 0;
 }
-{% endhighlight %}
+```
 
 Results in
-{% highlight objc %}
+``` objc
 ( 1, 2, 4, 7, 9 )
-{% endhighlight %}
+```
 
 <!--break-->
 
@@ -42,16 +42,16 @@ This implements a quicksort algorithm that uses a comparator block to determin t
 
 ### NSArray+Comparator
 
-{% highlight objc %}
+``` objc
 #import "NSArray+FunctionalTools.h"
 #import "NSArray+RandomUtils.h"
 
 @interface NSArray (Comparator)
 -(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator;
 @end
-{% endhighlight %}
+```
 
-{% highlight objc %}
+``` objc
 
 @implementation NSArray (Comparator)
 -(NSArray *) quicksortUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
@@ -77,12 +77,12 @@ This implements a quicksort algorithm that uses a comparator block to determin t
     return [self quicksortUsingComparator:comparator];
 }
 @end
-{% endhighlight %}
+```
 
 
 ### NSArray+FunctionalTool
 
-{% highlight objc %}
+``` objc
 
 #import <Foundation/Foundation.h>
 
@@ -122,10 +122,10 @@ typedef id (^VSTestBlock)(id element);
 @end
 
 
-{% endhighlight %}
+```
 
 
-{% highlight objc %}
+``` objc
 //
 //  NSArray+FuntionalTools.m
 //  arraytools
@@ -272,14 +272,14 @@ typedef id (^VSTestBlock)(id element);
 
 @end
 
-{% endhighlight %}
+```
 
 
 
 
 ### NSArray+RandomUtils
 
-{% highlight objc %}
+``` objc
 
 @interface NSArray (RandomUtils)
 -(id)randomElement;
@@ -289,10 +289,10 @@ typedef id (^VSTestBlock)(id element);
 @interface NSMutableArray (RandomUtils)
 -(void)shuffle;
 @end
-{% endhighlight %}
+```
 
 
-{% highlight objc %}
+``` objc
 #import "NSArray+RandomUtils.h"
 
 @implementation NSArray (RandomUtils)
@@ -305,7 +305,7 @@ typedef id (^VSTestBlock)(id element);
 }
 
 @end
-{% endhighlight %}
+```
 
 
 ----

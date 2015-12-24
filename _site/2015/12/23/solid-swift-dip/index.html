@@ -57,56 +57,57 @@ mainly for the iOS and Mac platforms. I will not start with the <em>S</em>, but 
 
 <p>lets say we have a struct to keep track of the hours we worked each day.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+<pre><code class="objc">struct TrackedHours {
 
-    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
-    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+    let date: NSDate
+    let duration: Double
 
-    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
+}
+</code></pre>
 
 <p>Now this struct does want we want, but it might be a little tedious to use, as
 we first must create a NSDate instance to pass it in.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="n">TrackedHours</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="p">{</span> <span class="k">let</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">NSDateComponents</span><span class="p">();</span> <span class="n">c</span><span class="p">.</span><span class="n">day</span> <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="n">c</span><span class="p">.</span><span class="n">month</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="n">c</span><span class="p">.</span><span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span><span class="p">;</span>  <span class="k">return</span> <span class="bp">NSCalendar</span><span class="p">.</span><span class="n">currentCalendar</span><span class="p">().</span><span class="n">dateFromComponents</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">!</span><span class="p">}(),</span> <span class="nl">duration</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span></code></pre></div>
-
+<pre><code class="objc">TrackedHours(date: { let c = NSDateComponents(); c.day = 29; c.month = 11; c.year = 2015;  return NSCalendar.currentCalendar().dateFromComponents(c)!}(), duration: 7),
+</code></pre>
 
 <p>We could add an init that takes a date string and creates a date formatter to use
 <code>dateFromString()</code> to create the date.<br/>
 As <code>dateFromString()</code> can return <code>nil</code>, we introduce some error handling</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="n">InvalidDate</span>
-<span class="p">}</span>
+<pre><code class="objc">
+enum TrackedHoursError: ErrorType {
+    case InvalidDate
+}
 
-<span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+struct TrackedHours {
 
-    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
-    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+    let date: NSDate
+    let duration: Double
 
-    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="p">}</span>
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
 
-    <span class="k">init</span> <span class="p">(</span><span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="k">throws</span> <span class="p">{</span>
-        <span class="k">let</span> <span class="n">dateFormatter</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">()</span>
-        <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MMM d, y&quot;</span>
-        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
-        <span class="k">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
-        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+    init (dateString:String, duration:Double) throws {
+        let dateFormatter = NSDateFormatter()
+        dateFormatter.dateFormat = "MMM d, y"
+        let date = dateFormatter.dateFromString(dateString)
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
+        self.init(date: date!, duration:duration)
+    }
+}
+</code></pre>
 
 <p>Now the struct is much easier to use</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">try</span><span class="o">?</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;Nov 29, 2015&quot;</span><span class="p">,</span> <span class="nl">time</span><span class="p">:</span> <span class="mi">7</span><span class="p">)</span></code></pre></div>
-
+<pre><code class="objc">try? TrackedHours(dateString: "Nov 29, 2015", time: 7)
+</code></pre>
 
 <p>But we have a hidden dependency, as it depends on NSDateFormatter now. Further-more
 we are tied to a single date format. If the user of this struct needs to deal with
@@ -126,34 +127,34 @@ other formats, the convenient init is useless.</p>
 but that is an implementation detail. Only the convenient init needs to use the
 formatter, we don't need to keep it.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="n">InvalidDate</span>
-<span class="p">}</span>
+<pre><code class="objc">enum TrackedHoursError: ErrorType {
+    case InvalidDate
+}
 
-<span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+struct TrackedHours {
 
-    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
-    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+    let date: NSDate
+    let duration: Double
 
-    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="p">}</span>
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
 
-    <span class="k">init</span> <span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span><span class="bp">NSDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="k">throws</span> <span class="p">{</span>
-        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
-        <span class="k">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
-        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+    init (dateFormatter:NSDateFormatter, dateString:String, duration:Double) throws {
+        let date = dateFormatter.dateFromString(dateString)
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
+        self.init(date: date!, duration:duration)
+    }
+}
+</code></pre>
 
 <p>Now we can pas in a date formatter with the format we need.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">let</span> <span class="n">dateFormatter</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">()</span>
-<span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MMM d, y&quot;</span>
-<span class="k">try</span><span class="o">?</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">dateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;Nov 29, 2015&quot;</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="mi">7</span><span class="p">),</span></code></pre></div>
-
+<pre><code class="objc">let dateFormatter = NSDateFormatter()
+dateFormatter.dateFormat = "MMM d, y"
+try? TrackedHours(dateFormatter: dateFormatter, dateString: "Nov 29, 2015", duration: 7),
+</code></pre>
 
 <p>Now our struct complies to Dependency Injection, and in most cases this is just as good as perfect —
 but in regards to Dependency <em>Injection</em> it isn't perfect. Our struct depends on a concrete
@@ -165,37 +166,37 @@ isn't any.</p>
 
 <p>For now e will give the protocol the only method we need from <code>NSDateFormatter</code></p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>
-    <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span>
-<span class="p">}</span></code></pre></div>
-
+<pre><code class="objc">protocol DateFormatting {
+    func dateFromString(string: String) -&gt; NSDate?
+}
+</code></pre>
 
 <p>and create an empty extension to indicate that NSDateFormatter implements the
 protocol.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">extension</span> <span class="nl">NSDateFormatter</span> <span class="p">:</span> <span class="n">DateFormatting</span> <span class="p">{</span>
-<span class="p">}</span></code></pre></div>
-
+<pre><code class="objc">extension NSDateFormatter : DateFormatting {
+}
+</code></pre>
 
 <p>thats it! Now we can type the <code>dateFormatter</code> parameter as <code>DateFormatting</code></p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
+<pre><code class="objc">struct TrackedHours {
 
-    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
-    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
+    let date: NSDate
+    let duration: Double
 
-    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="p">}</span>
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
 
-    <span class="k">init</span> <span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span><span class="n">DateFormatting</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="k">throws</span> <span class="p">{</span>
-        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
-        <span class="k">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span> <span class="k">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">}</span>
-        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span></code></pre></div>
-
+    init (dateFormatter:DateFormatting, dateString:String, duration:Double) throws {
+        let date = dateFormatter.dateFromString(dateString)
+        guard date != nil else { throw TrackedHoursError.InvalidDate}
+        self.init(date: date!, duration:duration)
+    }
+}
+</code></pre>
 
 <p>But why is it better to type it as the protocol and not the concrete type <code>NSDateFormatter</code>?</p>
 
@@ -212,121 +213,119 @@ You should know with data source uses which date format and normalize it upon re
 If you uncomment the line marked /*⛈*/, you will see that an <code>AmbigousDate</code> error is thrown,
 as the 2nd and the 3rd date formatters will both understand it — differently.</p>
 
-<div class="highlight"><pre><code class="language-swift" data-lang="swift"><span class="k">import</span> <span class="n">Foundation</span>
+<pre><code class="swift">import Foundation
 
 
-<span class="k">protocol</span> <span class="n">DateFormatting</span> <span class="p">{</span>
-    <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span>
+protocol DateFormatting {
+    func dateFromString(string: String)  -&gt; NSDate?
 
-    <span class="k">func</span> <span class="n">error</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TrackedHoursError</span><span class="o">?</span>
+    func error() -&gt; TrackedHoursError?
 
-<span class="p">}</span>
+}
 
-<span class="k">extension</span> <span class="nl">NSDateFormatter</span> <span class="p">:</span> <span class="n">DateFormatting</span> <span class="p">{</span>
-    <span class="k">func</span> <span class="n">error</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TrackedHoursError</span><span class="o">?</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nb">nil</span>
-    <span class="p">}</span>
+extension NSDateFormatter : DateFormatting {
+    func error() -&gt; TrackedHoursError? {
+        return nil
+    }
 
-<span class="p">}</span>
-
-
-<span class="k">enum</span> <span class="nl">TrackedHoursError</span><span class="p">:</span> <span class="n">ErrorType</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="n">InvalidDate</span>
-    <span class="k">case</span> <span class="n">AmbigousDate</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
-<span class="p">}</span>
-
-<span class="k">struct</span> <span class="n">TrackedHours</span> <span class="p">{</span>
-
-    <span class="k">let</span> <span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span>
-    <span class="k">let</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span>
-
-    <span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="bp">NSDate</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="n">Double</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">date</span> <span class="o">=</span> <span class="n">date</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">duration</span>
-    <span class="p">}</span>
-
-    <span class="k">init</span> <span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span><span class="n">DateFormatting</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span><span class="n">String</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">Double</span><span class="p">)</span> <span class="k">throws</span> <span class="p">{</span>
-        <span class="k">let</span> <span class="n">date</span> <span class="o">=</span>  <span class="n">dateFormatter</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">dateString</span><span class="p">)</span>
-        <span class="k">guard</span> <span class="n">date</span> <span class="o">!=</span> <span class="nb">nil</span> <span class="k">else</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="k">let</span> <span class="n">error</span> <span class="o">=</span> <span class="n">dateFormatter</span><span class="p">.</span><span class="n">error</span><span class="p">()</span> <span class="p">{</span>
-                <span class="k">throw</span> <span class="n">error</span>
-            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-                <span class="k">throw</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="nb">self</span><span class="p">.</span><span class="k">init</span><span class="p">(</span><span class="nl">date</span><span class="p">:</span> <span class="n">date</span><span class="o">!</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span><span class="n">duration</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="k">class</span> <span class="nl">MultiDateFormatter</span> <span class="p">:</span> <span class="n">DateFormatting</span> <span class="p">{</span>
-
-    <span class="k">let</span> <span class="nl">dateFormatters</span><span class="p">:</span> <span class="p">[</span><span class="n">DateFormatting</span><span class="p">]</span>
-    <span class="k">init</span><span class="p">(</span><span class="nl">dateFormatters</span><span class="p">:</span> <span class="p">[</span><span class="n">DateFormatting</span><span class="p">]){</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">dateFormatters</span> <span class="o">=</span> <span class="n">dateFormatters</span>
-    <span class="p">}</span>
-    <span class="n">private</span> <span class="k">var</span> <span class="nl">_error</span><span class="p">:</span> <span class="n">TrackedHoursError</span><span class="o">?</span>
-
-    <span class="k">func</span> <span class="n">error</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">TrackedHoursError</span><span class="o">?</span> <span class="p">{</span> <span class="k">return</span> <span class="n">_error</span> <span class="p">}</span>
-
-    <span class="k">func</span> <span class="n">dateFromString</span><span class="p">(</span><span class="nl">string</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="bp">NSDate</span><span class="o">?</span> <span class="p">{</span>
-
-        <span class="k">var</span> <span class="n">possibleDates</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSDate</span><span class="p">]()</span>
-        <span class="k">for</span> <span class="n">df</span> <span class="k">in</span> <span class="n">dateFormatters</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="k">let</span> <span class="n">date</span> <span class="o">=</span> <span class="n">df</span><span class="p">.</span><span class="n">dateFromString</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">possibleDates</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
-            <span class="p">}</span>
-        <span class="p">}</span>
-        <span class="k">guard</span> <span class="n">possibleDates</span><span class="p">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">{</span> <span class="nb">self</span><span class="p">.</span><span class="n">_error</span> <span class="o">=</span> <span class="p">.</span><span class="n">AmbigousDate</span><span class="p">(</span><span class="n">string</span><span class="p">);</span> <span class="k">return</span> <span class="nb">nil</span> <span class="p">}</span>
-        <span class="k">guard</span> <span class="n">possibleDates</span><span class="p">.</span><span class="n">count</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">nil</span> <span class="p">}</span>
-        <span class="k">return</span> <span class="n">possibleDates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+}
 
 
+enum TrackedHoursError: ErrorType {
+    case InvalidDate
+    case AmbigousDate(String)
+}
 
-<span class="k">do</span> <span class="p">{</span>
-    <span class="k">let</span> <span class="n">currentMonth</span> <span class="o">=</span> <span class="bp">NSCalendar</span><span class="p">.</span><span class="n">currentCalendar</span><span class="p">().</span><span class="n">dateFromComponents</span><span class="p">({</span>
-            <span class="k">let</span> <span class="n">comps</span> <span class="o">=</span> <span class="bp">NSDateComponents</span><span class="p">();</span>
-            <span class="n">comps</span><span class="p">.</span><span class="n">day</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-            <span class="n">comps</span><span class="p">.</span><span class="n">month</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
-            <span class="n">comps</span><span class="p">.</span><span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span><span class="p">;</span>
-            <span class="k">return</span> <span class="n">comps</span>
-        <span class="p">}())</span><span class="o">!</span>
-    <span class="k">let</span> <span class="n">multiDateFormatter</span> <span class="o">=</span> <span class="n">MultiDateFormatter</span><span class="p">(</span><span class="nl">dateFormatters</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span><span class="k">let</span> <span class="n">df</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">();</span> <span class="n">df</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;yyyy, MM, dd&quot;</span><span class="p">;</span> <span class="k">return</span> <span class="n">df</span><span class="p">}(),</span>
-        <span class="p">{</span><span class="k">let</span> <span class="n">df</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">();</span> <span class="n">df</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;dd, MM, yyyy&quot;</span><span class="p">;</span> <span class="k">return</span> <span class="n">df</span><span class="p">}(),</span>
-        <span class="p">{</span><span class="k">let</span> <span class="n">df</span> <span class="o">=</span> <span class="bp">NSDateFormatter</span><span class="p">();</span> <span class="n">df</span><span class="p">.</span><span class="n">dateFormat</span> <span class="o">=</span> <span class="s">&quot;MM, dd, yyyy&quot;</span><span class="p">;</span> <span class="k">return</span> <span class="n">df</span><span class="p">}()</span>
-        <span class="p">])</span>
+struct TrackedHours {
 
+    let date: NSDate
+    let duration: Double
 
-    <span class="k">let</span> <span class="n">hoursData</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;11/29, 2015&quot;</span><span class="p">,</span>       <span class="nl">duration</span><span class="p">:</span> <span class="mf">7.1</span><span class="p">),</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;December 12, 2015&quot;</span><span class="p">,</span> <span class="nl">duration</span><span class="p">:</span> <span class="mf">7.5</span><span class="p">),</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;13.12.2015&quot;</span><span class="p">,</span>        <span class="nl">duration</span><span class="p">:</span> <span class="mf">7.1</span><span class="p">),</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;14/12/2015&quot;</span><span class="p">,</span>        <span class="nl">duration</span><span class="p">:</span> <span class="mf">8.0</span><span class="p">),</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;2015-12-15&quot;</span><span class="p">,</span>        <span class="nl">duration</span><span class="p">:</span> <span class="mf">8.1</span><span class="p">),</span>
-        <span class="k">try</span> <span class="n">TrackedHours</span><span class="p">(</span><span class="nl">dateFormatter</span><span class="p">:</span> <span class="n">multiDateFormatter</span><span class="p">,</span> <span class="nl">dateString</span><span class="p">:</span> <span class="s">&quot;Dec 12, 2015&quot;</span><span class="p">,</span>      <span class="nl">duration</span><span class="p">:</span> <span class="mf">7.1</span><span class="p">),</span>
-<span class="c1">//      try TrackedHours(dateFormatter: multiDateFormatter, dateString: &quot;1 12, 2015&quot;,      duration: 7.1)/*⛈*/</span>
+    init(date: NSDate, duration: Double) {
+        self.date = date
+        self.duration = duration
+    }
 
-    <span class="p">]</span>
+    init (dateFormatter:DateFormatting, dateString:String, duration:Double) throws {
+        let date =  dateFormatter.dateFromString(dateString)
+        guard date != nil else {
+            if let error = dateFormatter.error() {
+                throw error
+            } else {
+                throw TrackedHoursError.InvalidDate
+            }
+        }
+        self.init(date: date!, duration:duration)
+    }
+}
 
+class MultiDateFormatter : DateFormatting {
 
-    <span class="k">let</span> <span class="n">totalDuration</span> <span class="o">=</span> <span class="n">hoursData</span><span class="p">.</span><span class="n">filter</span><span class="p">{</span>
-        <span class="k">let</span> <span class="n">objectsComps</span> <span class="o">=</span> <span class="bp">NSCalendar</span><span class="p">.</span><span class="n">currentCalendar</span><span class="p">().</span><span class="n">components</span><span class="p">([.</span><span class="n">Month</span><span class="p">,</span> <span class="p">.</span><span class="n">Year</span><span class="p">],</span> <span class="nl">fromDate</span><span class="p">:</span> <span class="err">$</span><span class="mf">0.</span><span class="n">date</span><span class="p">)</span>
-        <span class="k">let</span> <span class="n">todaysComps</span>  <span class="o">=</span> <span class="bp">NSCalendar</span><span class="p">.</span><span class="n">currentCalendar</span><span class="p">().</span><span class="n">components</span><span class="p">([.</span><span class="n">Month</span><span class="p">,</span> <span class="p">.</span><span class="n">Year</span><span class="p">],</span> <span class="nl">fromDate</span><span class="p">:</span> <span class="n">currentMonth</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">objectsComps</span><span class="p">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">todaysComps</span><span class="p">.</span><span class="n">month</span> <span class="o">&amp;&amp;</span> <span class="n">objectsComps</span><span class="p">.</span><span class="n">year</span> <span class="o">==</span> <span class="n">todaysComps</span><span class="p">.</span><span class="n">year</span>
-        <span class="p">}.</span><span class="n">reduce</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-            <span class="err">$</span><span class="mi">0</span> <span class="o">+</span> <span class="err">$</span><span class="mf">1.</span><span class="n">duration</span>
-    <span class="p">}</span>
-    <span class="n">print</span><span class="p">(</span><span class="n">totalDuration</span><span class="p">)</span>
-<span class="p">}</span> <span class="k">catch</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">InvalidDate</span><span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;one or more datestrings must be wrong&quot;</span><span class="p">)</span>
-<span class="p">}</span>  <span class="k">catch</span> <span class="n">TrackedHoursError</span><span class="p">.</span><span class="n">AmbigousDate</span><span class="p">(</span><span class="k">let</span> <span class="n">string</span><span class="p">){</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;more than one dateformatter were able to interprete this string: \(string)&quot;</span><span class="p">)</span>
-<span class="p">}</span></code></pre></div>
+    let dateFormatters: [DateFormatting]
+    init(dateFormatters: [DateFormatting]){
+        self.dateFormatters = dateFormatters
+    }
+    private var _error: TrackedHoursError?
+
+    func error() -&gt; TrackedHoursError? { return _error }
+
+    func dateFromString(string: String)  -&gt; NSDate? {
+
+        var possibleDates = [NSDate]()
+        for df in dateFormatters {
+            if let date = df.dateFromString(string) {
+                possibleDates.append(date)
+            }
+        }
+        guard possibleDates.count &lt; 2 else { self._error = .AmbigousDate(string); return nil }
+        guard possibleDates.count == 1 else { return nil }
+        return possibleDates[0]
+    }
+}
 
 
 
+do {
+    let currentMonth = NSCalendar.currentCalendar().dateFromComponents({
+            let comps = NSDateComponents();
+            comps.day = 1;
+            comps.month = 12;
+            comps.year = 2015;
+            return comps
+        }())!
+    let multiDateFormatter = MultiDateFormatter(dateFormatters: [
+        {let df = NSDateFormatter(); df.dateFormat = "yyyy, MM, dd"; return df}(),
+        {let df = NSDateFormatter(); df.dateFormat = "dd, MM, yyyy"; return df}(),
+        {let df = NSDateFormatter(); df.dateFormat = "MM, dd, yyyy"; return df}()
+        ])
+
+
+    let hoursData = [
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "11/29, 2015",       duration: 7.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "December 12, 2015", duration: 7.5),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "13.12.2015",        duration: 7.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "14/12/2015",        duration: 8.0),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "2015-12-15",        duration: 8.1),
+        try TrackedHours(dateFormatter: multiDateFormatter, dateString: "Dec 12, 2015",      duration: 7.1),
+//      try TrackedHours(dateFormatter: multiDateFormatter, dateString: "1 12, 2015",      duration: 7.1)/*⛈*/
+
+    ]
+
+
+    let totalDuration = hoursData.filter{
+        let objectsComps = NSCalendar.currentCalendar().components([.Month, .Year], fromDate: $0.date)
+        let todaysComps  = NSCalendar.currentCalendar().components([.Month, .Year], fromDate: currentMonth)
+        return objectsComps.month == todaysComps.month &amp;&amp; objectsComps.year == todaysComps.year
+        }.reduce(0) {
+            $0 + $1.duration
+    }
+    print(totalDuration)
+} catch TrackedHoursError.InvalidDate{
+    print("one or more datestrings must be wrong")
+}  catch TrackedHoursError.AmbigousDate(let string){
+    print("more than one dateformatter were able to interprete this string: \(string)")
+}
+</code></pre>
 
   </div>
   <div class="span4">

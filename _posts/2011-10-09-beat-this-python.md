@@ -19,7 +19,7 @@ But since Apple extended Objective-C by introducing Blocks to the underlaying C,
 When people ask me, why I am such a big fan of Python, I usually refer to a sample Quicksort algorithm using List Comprehensions.
 here we go:
 
-{% highlight python %}
+``` python
 
 def quicksort(alist):
   if len(alist) <= 1: return alist
@@ -28,8 +28,8 @@ def quicksort(alist):
     right = [element for element in alist if element >= pivotelement]
   return quicksort(left) + [pivotelement] + quicksort(right)
 
-{% endhighlight %}
-<!--break-->
+```
+  <!--break-->
 
 
 Compact and beautiful, isn't it?
@@ -45,19 +45,18 @@ But why do we iterate over alist twice? Can't we just say "…if less than pivot
 And that is exactly how I did my Objective-C array tools.
 Have a look at this signature:  
 
-{% highlight objc %}
+``` objc
 - (NSArray *) arrayByPerformingBlock:(id   (^)(id element))performBlock
                  ifElementPassesTest:(BOOL (^)(id element))testBlock
                     elsePerformBlock:(void (^)(id element))elseBlock;
-{% endhighlight %}
-
+```
 
 If the testBlock returns YES, the element will be processed in the performBlock and returned
 If the test fails the elseBlock will be executed with the element.
 
 How would the initial example look like?
 
-{% highlight objc %}
+``` objc
 
 NSArray* quicksort(NSArray *array)
 {
@@ -69,13 +68,13 @@ NSArray* quicksort(NSArray *array)
                          elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
     ];
     return [[quicksort(array) arrayByAddingObject:pivot] arrayByAddingObjectsFromArray:quicksort(array2)];}
-{% endhighlight %}
+```
 
 Not bad, huh?
 
 Well, I mentioned in the beginning, that I like Categories, so lets do the last step and transform this C-style function into a Category.
 
-{% highlight objc %}
+``` objc
 
 -(NSArray *) quicksort
 {
@@ -90,24 +89,23 @@ Well, I mentioned in the beginning, that I like Categories, so lets do the last 
     ];
     return [[[self quicksort] arrayByAddingObject:pivot] arrayByAddingObjectsFromArray:[array2 quicksort]];
 }
-{% endhighlight %}
-
+```
 
 You may ask "How is that Quicksort implementation useful to me?" It isn't. It is just an example. Please do sorting with the APIs offered by Apple. I am pretty sure, that they are much better.
 But If you a requirement where you need to filter a array in maybe two arrays, you can do this:
 
-{% highlight objc %}
+``` objc
 NSMutableArray *falsePositives = [NSMutableArray array];
 NSArray *array = [NSArray arrayWithObjects:@"aa", @"ab",@"c",@"ad",@"dd", nil];
 array = [array arrayByPerformingBlock:^id  (id element) {return [element stringByAppendingString:element];}
                   ifElementPassesTest:^BOOL(id element) {return [element hasPrefix:@"a"];}
                      elsePerformBlock:^    (id element) {[falsePositives addObject:element];}];
-{% endhighlight %}
 
+```
 
 You see I use block to active a more functional programming style and to emulate List Comprehensions. But I go a bit further and introduce a else-clause. **Beat This, Python!**
 
-{% highlight objc %}
+``` objc
 
 #import <Foundation/Foundation.h>
 
@@ -136,9 +134,8 @@ You see I use block to active a more functional programming style and to emulate
 
 -(void)performBlock:(void (^) (id element))block;
 @end
-{% endhighlight %}
-
-{% highlight objc %}
+```
+``` objc
 #import "NSArray+FunctionalTools.h"
 
 @implementation NSArray (FunctionalTools)
@@ -226,4 +223,4 @@ You see I use block to active a more functional programming style and to emulate
 }
 
 @end
-{% endhighlight %}
+```

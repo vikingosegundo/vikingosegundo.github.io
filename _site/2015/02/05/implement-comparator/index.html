@@ -40,27 +40,25 @@
 
 <h3>Example Usage</h3>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
-<span class="cp">#import &quot;NSArray+Comparator&quot;</span>
+<pre><code class="objc">#import &lt;Foundation/Foundation.h&gt;
+#import "NSArray+Comparator"
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
-    <span class="k">@autoreleasepool</span> <span class="p">{</span>
-        <span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="l">@[</span><span class="mi">@4</span><span class="p">,</span> <span class="mi">@9</span><span class="p">,</span> <span class="mi">@2</span><span class="p">,</span> <span class="mi">@1</span><span class="p">,</span> <span class="mi">@7</span><span class="l">]</span><span class="p">;</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">vs_sortedArrayUsingComparator</span><span class="p">:</span><span class="o">^</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">)</span>
-        <span class="p">{</span>
-            <span class="k">return</span>  <span class="p">[</span><span class="n">obj1</span> <span class="nl">compare</span><span class="p">:</span><span class="n">obj2</span><span class="p">];</span>
-        <span class="p">}];</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span></code></pre></div>
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        NSArray *array = @[@4, @9, @2, @1, @7];
+        array = [array vs_sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2)
+        {
+            return  [obj1 compare:obj2];
+        }];
+    }
+    return 0;
+}
+</code></pre>
 
-
-<p>Results in</p>
-
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span> <span class="p">)</span></code></pre></div>
-
-
-
+<p>Results in
+<code>objc
+( 1, 2, 4, 7, 9 )
+</code></p>
 
 <!--break-->
 
@@ -69,258 +67,255 @@
 
 <h3>NSArray+Comparator</h3>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;NSArray+FunctionalTools.h&quot;</span>
-<span class="cp">#import &quot;NSArray+RandomUtils.h&quot;</span>
+<pre><code class="objc">#import "NSArray+FunctionalTools.h"
+#import "NSArray+RandomUtils.h"
 
-<span class="k">@interface</span> <span class="bp">NSArray</span> <span class="nl">(Comparator)</span>
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">vs_sortedArrayUsingComparator:</span><span class="p">(</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">))</span><span class="nv">comparator</span><span class="p">;</span>
-<span class="k">@end</span></code></pre></div>
+@interface NSArray (Comparator)
+-(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator;
+@end
+</code></pre>
 
+<pre><code class="objc">
+@implementation NSArray (Comparator)
+-(NSArray *) quicksortUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
+{
+    NSArray *array = [self copy];
+    if ([array count]&lt;2) {
+      return [array copy];
+    }
+    id pivot = [array randomElement];
+    NSMutableArray *array2= [NSMutableArray array];
 
+    array = [array arrayByPerformingBlock:^id(id element) { return element;}
+                      ifElementPassesTest:^BOOL(id element) { return comparator(element, pivot) == NSOrderedAscending;}
+                         elsePerformBlock:^    (id element) { if (element!=pivot) [array2 addObject:element];}
+            ];
+    return [[[array quicksortUsingComparator:comparator]
+                                    arrayByAddingObject:pivot]
+                                        arrayByAddingObjectsFromArray:[array2 quicksortUsingComparator:comparator]];
+}
 
-
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">@implementation</span> <span class="bp">NSArray</span> <span class="nl">(Comparator)</span>
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span> <span class="nf">quicksortUsingComparator:</span><span class="p">(</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">))</span><span class="nv">comparator</span>
-<span class="p">{</span>
-    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span> <span class="k">copy</span><span class="p">];</span>
-    <span class="k">if</span> <span class="p">([</span><span class="n">array</span> <span class="n">count</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="p">[</span><span class="n">array</span> <span class="k">copy</span><span class="p">];</span>
-    <span class="p">}</span>
-    <span class="kt">id</span> <span class="n">pivot</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="n">randomElement</span><span class="p">];</span>
-    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array2</span><span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-
-    <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="n">array</span> <span class="nl">arrayByPerformingBlock</span><span class="p">:</span><span class="o">^</span><span class="kt">id</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">element</span><span class="p">;}</span>
-                      <span class="nl">ifElementPassesTest</span><span class="p">:</span><span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">comparator</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">pivot</span><span class="p">)</span> <span class="o">==</span> <span class="n">NSOrderedAscending</span><span class="p">;}</span>
-                         <span class="nl">elsePerformBlock</span><span class="p">:</span><span class="o">^</span>    <span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="n">element</span><span class="o">!=</span><span class="n">pivot</span><span class="p">)</span> <span class="p">[</span><span class="n">array2</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">element</span><span class="p">];}</span>
-            <span class="p">];</span>
-    <span class="k">return</span> <span class="p">[[[</span><span class="n">array</span> <span class="nl">quicksortUsingComparator</span><span class="p">:</span><span class="n">comparator</span><span class="p">]</span>
-                                    <span class="nl">arrayByAddingObject</span><span class="p">:</span><span class="n">pivot</span><span class="p">]</span>
-                                        <span class="nl">arrayByAddingObjectsFromArray</span><span class="p">:[</span><span class="n">array2</span> <span class="nl">quicksortUsingComparator</span><span class="p">:</span><span class="n">comparator</span><span class="p">]];</span>
-<span class="p">}</span>
-
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">vs_sortedArrayUsingComparator:</span><span class="p">(</span><span class="n">NSComparisonResult</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">obj1</span><span class="p">,</span> <span class="kt">id</span> <span class="n">obj2</span><span class="p">))</span><span class="nv">comparator</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">quicksortUsingComparator</span><span class="p">:</span><span class="n">comparator</span><span class="p">];</span>
-<span class="p">}</span>
-<span class="k">@end</span></code></pre></div>
-
+-(NSArray *)vs_sortedArrayUsingComparator:(NSComparisonResult(^)(id obj1, id obj2))comparator
+{
+    return [self quicksortUsingComparator:comparator];
+}
+@end
+</code></pre>
 
 <h3>NSArray+FunctionalTool</h3>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+<pre><code class="objc">
+#import &lt;Foundation/Foundation.h&gt;
 
-<span class="k">typedef</span> <span class="nf">id</span> <span class="p">(</span><span class="o">^</span><span class="n">VSTestBlock</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">);</span>
-<span class="k">@interface</span> <span class="bp">NSArray</span> <span class="nl">(FunctionalTools)</span>
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span><span class="o">*</span><span class="p">)</span><span class="nf">filter:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">filterBlock</span><span class="p">;</span>
+typedef id (^VSTestBlock)(id element);
+@interface NSArray (FunctionalTools)
+- (NSArray*)filter:(BOOL(^)(id element))filterBlock;
 
-<span class="p">+(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="bp">NSInteger</span> <span class="n">index</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">withIndexFromRange:</span><span class="p">(</span><span class="n">NSRange</span><span class="p">)</span><span class="nv">range</span><span class="p">;</span>
++(NSArray *)arrayByPerformingBlock:(id(^)(NSInteger index))performBlock
+                withIndexFromRange:(NSRange)range;
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>  <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span><span class="p">;</span>
+- (NSArray *)arrayByPerformingBlock:(id  (^)(id element))performBlock;
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>  <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span><span class="p">;</span>
+- (NSArray *)arrayByPerformingBlock:(id  (^)(id element))performBlock
+                ifElementPassesTest:(BOOL(^)(id element))testBlock;
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>   <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span>
-                   <span class="nf">elsePerformBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">elseBlock</span><span class="p">;</span>
+- (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock;
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>   <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span>
-                   <span class="nf">elsePerformBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">elseBlock</span>
-                           <span class="nf">succeded:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="p">())</span><span class="nv">succesBlock</span>
-                             <span class="nf">failed:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">failedBlock</span>
-                   <span class="nf">stopOnFailedTest:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nv">stop</span><span class="p">;</span>
-
-
-<span class="p">-(</span><span class="bp">NSSet</span> <span class="o">*</span><span class="p">)</span><span class="nf">setByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>  <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-           <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span><span class="p">;</span>
-
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">dictionaryByFilteringWithBlocks:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">filterBlocks</span> <span class="nf">forKeys:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">keys</span><span class="p">;</span>
-
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayOfArraysWithColumnWidth:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">width</span><span class="p">;</span>
+- (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock
+                           succeded:(void (^) ())succesBlock
+                             failed:(void (^)(id element))failedBlock
+                   stopOnFailedTest:(BOOL)stop;
 
 
-<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">performBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">block</span><span class="p">;</span>
-<span class="k">@end</span></code></pre></div>
+-(NSSet *)setByPerformingBlock:(id  (^)(id element))performBlock
+           ifElementPassesTest:(BOOL (^)(id element))testBlock;
+
+- (NSDictionary *)dictionaryByFilteringWithBlocks:(NSArray *)filterBlocks forKeys:(NSArray *)keys;
+
+-(NSArray *)arrayOfArraysWithColumnWidth:(NSUInteger)width;
 
 
+-(void)performBlock:(void (^) (id element))block;
+@end
+</code></pre>
+
+<pre><code class="objc">//
+//  NSArray+FuntionalTools.m
+//  arraytools
+//
+//  Created by vikingosegundo on 28.08.11.
+//  Copyright (c) 2011 vikingosegundo. All rights reserved.
+//
+
+#import "NSArray+FunctionalTools.h"
+
+@implementation NSArray (FunctionalTools)
+-(NSArray *)filter:(BOOL (^)(id))filterBlock
+{
+  NSMutableArray *filteredArray = [NSMutableArray array];
+  for (id element in self)
+    if (filterBlock(element))
+      [filteredArray addObject:element];
+  return [NSArray arrayWithArray:filteredArray];
+}
+
++(NSArray *)arrayByPerformingBlock:(id (^)(NSInteger))performBlock
+                withIndexFromRange:(NSRange)range
+{
+  NSMutableArray *array = [NSMutableArray array];
+  for (NSUInteger i = range.location; i&lt; range.location+range.length; ++i) {
+    [array addObject:performBlock(i)];
+  }
+  return array;
+}
 
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="c1">//</span>
-<span class="c1">//  NSArray+FuntionalTools.m</span>
-<span class="c1">//  arraytools</span>
-<span class="c1">//</span>
-<span class="c1">//  Created by vikingosegundo on 28.08.11.</span>
-<span class="c1">//  Copyright (c) 2011 vikingosegundo. All rights reserved.</span>
-<span class="c1">//</span>
-
-<span class="cp">#import &quot;NSArray+FunctionalTools.h&quot;</span>
-
-<span class="k">@implementation</span> <span class="bp">NSArray</span> <span class="nl">(FunctionalTools)</span>
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">filter:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">filterBlock</span>
-<span class="p">{</span>
-  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">filteredArray</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">filterBlock</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
-      <span class="p">[</span><span class="n">filteredArray</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">element</span><span class="p">];</span>
-  <span class="k">return</span> <span class="p">[</span><span class="bp">NSArray</span> <span class="nl">arrayWithArray</span><span class="p">:</span><span class="n">filteredArray</span><span class="p">];</span>
-<span class="p">}</span>
-
-<span class="p">+(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="bp">NSInteger</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">withIndexFromRange:</span><span class="p">(</span><span class="n">NSRange</span><span class="p">)</span><span class="nv">range</span>
-<span class="p">{</span>
-  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="bp">NSUInteger</span> <span class="n">i</span> <span class="o">=</span> <span class="n">range</span><span class="p">.</span><span class="n">location</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span> <span class="n">range</span><span class="p">.</span><span class="n">location</span><span class="o">+</span><span class="n">range</span><span class="p">.</span><span class="n">length</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="p">[</span><span class="n">array</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">performBlock</span><span class="p">(</span><span class="n">i</span><span class="p">)];</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">array</span><span class="p">;</span>
-<span class="p">}</span>
+- (NSArray *)arrayByPerformingBlock:(id (^)(id element))performBlock
+{
+  return [self arrayByPerformingBlock:performBlock
+          ifElementPassesTest:^BOOL(id element) { return  YES;}];
+}
 
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-<span class="p">{</span>
-  <span class="k">return</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">arrayByPerformingBlock</span><span class="p">:</span><span class="n">performBlock</span>
-          <span class="nl">ifElementPassesTest</span><span class="p">:</span><span class="o">^</span><span class="kt">BOOL</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span>  <span class="nb">YES</span><span class="p">;}];</span>
-<span class="p">}</span>
+- (NSArray *)arrayByPerformingBlock:(id(^)(id element))performBlock
+                ifElementPassesTest:(BOOL(^)(id element))testBlock
+{
+
+  return [self arrayByPerformingBlock:performBlock
+                  ifElementPassesTest:testBlock
+                     elsePerformBlock:^(id element){;}];
+}
 
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span>
-<span class="p">{</span>
-
-  <span class="k">return</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">arrayByPerformingBlock</span><span class="p">:</span><span class="n">performBlock</span>
-                  <span class="nl">ifElementPassesTest</span><span class="p">:</span><span class="n">testBlock</span>
-                     <span class="nl">elsePerformBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span><span class="p">){;}];</span>
-<span class="p">}</span>
-
-
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">performBlock</span>
-               <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">testBlock</span>
-                  <span class="nf">elsePerformBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">elseBlock</span>
-<span class="p">{</span>
-  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">)</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">testBlock</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
-      <span class="p">[</span><span class="n">array</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">performBlock</span><span class="p">(</span><span class="n">element</span><span class="p">)];</span>
-    <span class="k">else</span>
-      <span class="n">elseBlock</span><span class="p">(</span><span class="n">element</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">array</span><span class="p">;</span>
-<span class="p">}</span>
+-(NSArray *)arrayByPerformingBlock:(id (^)(id))performBlock
+               ifElementPassesTest:(BOOL (^)(id))testBlock
+                  elsePerformBlock:(void (^)(id))elseBlock
+{
+  NSMutableArray *array = [NSMutableArray array];
+  for (id element in self)
+    if(testBlock(element))
+      [array addObject:performBlock(element)];
+    else
+      elseBlock(element);
+  return array;
+}
 
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>   <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">performBlock</span>
-                <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">testBlock</span>
-                   <span class="nf">elsePerformBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">elseBlock</span>
-                           <span class="nf">succeded:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)())</span><span class="nv">succesBlock</span>
-                             <span class="nf">failed:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">))</span><span class="nv">failedBlock</span>
-                   <span class="nf">stopOnFailedTest:</span><span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nv">stop</span>
+- (NSArray *)arrayByPerformingBlock:(id   (^)(id element))performBlock
+                ifElementPassesTest:(BOOL (^)(id element))testBlock
+                   elsePerformBlock:(void (^)(id element))elseBlock
+                           succeded:(void (^)())succesBlock
+                             failed:(void (^)(id element))failedBlock
+                   stopOnFailedTest:(BOOL)stop
 
-<span class="p">{</span>
-  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">){</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">testBlock</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
-      <span class="p">[</span><span class="n">array</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">performBlock</span><span class="p">(</span><span class="n">element</span><span class="p">)];</span>
-    <span class="k">else</span><span class="p">{</span>
-      <span class="n">elseBlock</span><span class="p">(</span><span class="n">element</span><span class="p">);</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">failedBlock</span><span class="p">(</span><span class="n">element</span><span class="p">);</span>
-        <span class="k">break</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
+{
+  NSMutableArray *array = [NSMutableArray array];
+  for (id element in self){
+    if(testBlock(element))
+      [array addObject:performBlock(element)];
+    else{
+      elseBlock(element);
+      if (stop) {
+        failedBlock(element);
+        break;
+      }
+    }
+  }
 
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">succesBlock</span><span class="p">();</span>
-  <span class="p">}</span>
-    <span class="k">return</span> <span class="n">array</span><span class="p">;</span>
-<span class="p">}</span>
+  if (!stop) {
+    succesBlock();
+  }
+    return array;
+}
 
-<span class="p">-(</span><span class="bp">NSSet</span> <span class="o">*</span><span class="p">)</span><span class="nf">setByPerformingBlock:</span><span class="p">(</span><span class="kt">id</span>   <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">performBlock</span>
-           <span class="nf">ifElementPassesTest:</span><span class="p">(</span><span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">testBlock</span>
-<span class="p">{</span>
-    <span class="bp">NSMutableSet</span> <span class="o">*</span><span class="n">set</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableSet</span> <span class="nl">setWithArray</span><span class="p">:</span><span class="nb">self</span><span class="p">];</span>
-    <span class="bp">NSMutableSet</span> <span class="o">*</span><span class="n">newSet</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableSet</span> <span class="n">set</span><span class="p">];</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="n">set</span><span class="p">){</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">testBlock</span><span class="p">(</span><span class="n">element</span><span class="p">))</span> <span class="p">{</span>
-            <span class="p">[</span><span class="n">newSet</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">performBlock</span><span class="p">(</span><span class="n">element</span><span class="p">)];</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">([</span><span class="n">newSet</span> <span class="n">count</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
-    <span class="k">return</span> <span class="p">[</span><span class="bp">NSSet</span> <span class="nl">setWithSet</span><span class="p">:</span><span class="n">newSet</span><span class="p">];</span>
-<span class="p">}</span>
+-(NSSet *)setByPerformingBlock:(id   (^)(id))performBlock
+           ifElementPassesTest:(BOOL (^)(id))testBlock
+{
+    NSMutableSet *set = [NSMutableSet setWithArray:self];
+    NSMutableSet *newSet = [NSMutableSet set];
+    for (id element in set){
+        if (testBlock(element)) {
+            [newSet addObject:performBlock(element)];
+        }
+    }
+    if ([newSet count]&lt;1)
+        return nil;
+    return [NSSet setWithSet:newSet];
+}
 
-<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">performBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)(</span><span class="kt">id</span><span class="p">))</span><span class="nv">block</span>
-<span class="p">{</span>
-  <span class="k">for</span><span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">block</span><span class="p">(</span><span class="n">element</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">dictionaryByFilteringWithBlocks:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">filterBlocks</span> <span class="nf">forKeys:</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nv">keys</span>
-<span class="p">{</span>
-  <span class="bp">NSMutableDictionary</span> <span class="o">*</span><span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableDictionary</span> <span class="nl">dictionaryWithCapacity</span><span class="p">:[</span><span class="n">keys</span> <span class="n">count</span><span class="p">]];</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">key</span>  <span class="k">in</span> <span class="n">keys</span><span class="p">)</span> <span class="p">{</span>
-    <span class="p">[</span><span class="n">result</span> <span class="nl">setObject</span><span class="p">:[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">]</span> <span class="nl">forKey</span><span class="p">:</span><span class="n">key</span><span class="p">];</span>
-  <span class="p">}</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">id</span> <span class="n">element</span> <span class="k">in</span> <span class="nb">self</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="p">(</span><span class="bp">NSUInteger</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="p">[</span><span class="n">filterBlocks</span> <span class="n">count</span><span class="p">];</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kt">BOOL</span> <span class="p">(</span><span class="o">^</span><span class="n">block</span><span class="p">)(</span><span class="kt">id</span> <span class="n">element</span><span class="p">)</span>  <span class="o">=</span> <span class="p">[</span><span class="n">filterBlocks</span> <span class="nl">objectAtIndex</span><span class="p">:</span><span class="n">i</span><span class="p">];</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">block</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
-        <span class="p">[(</span><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="p">)[</span><span class="n">result</span> <span class="nl">objectForKey</span><span class="p">:[</span><span class="n">keys</span> <span class="nl">objectAtIndex</span><span class="p">:</span><span class="n">i</span><span class="p">]]</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">element</span><span class="p">];</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
-<span class="p">}</span>
+-(void)performBlock:(void (^)(id))block
+{
+  for(id element in self) {
+    block(element);
+  }
+}
 
 
-<span class="p">-(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="p">)</span><span class="nf">arrayOfArraysWithColumnWidth:</span><span class="p">(</span><span class="bp">NSUInteger</span><span class="p">)</span><span class="nv">width</span>
-<span class="p">{</span>
-    <span class="n">NSAssert</span><span class="p">(</span><span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">@&quot;width need to be 1 or greater&quot;</span><span class="p">);</span>
+- (NSDictionary *)dictionaryByFilteringWithBlocks:(NSArray *)filterBlocks forKeys:(NSArray *)keys
+{
+  NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:[keys count]];
+  for (id key  in keys) {
+    [result setObject:[NSMutableArray array] forKey:key];
+  }
+  for (id element in self) {
+    for (NSUInteger i=0; i &lt; [filterBlocks count]; i++) {
+      BOOL (^block)(id element)  = [filterBlocks objectAtIndex:i];
+      if (block(element))
+        [(NSMutableArray *)[result objectForKey:[keys objectAtIndex:i]] addObject:element];
+    }
+  }
+  return result;
+}
 
-    <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">mArray</span> <span class="o">=</span><span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">];</span>
-    <span class="p">[</span><span class="nb">self</span> <span class="nl">enumerateObjectsUsingBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">id</span> <span class="n">obj</span><span class="p">,</span> <span class="bp">NSUInteger</span> <span class="n">idx</span><span class="p">,</span> <span class="kt">BOOL</span> <span class="o">*</span><span class="n">stop</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">idx</span> <span class="o">%</span> <span class="n">width</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-            <span class="p">[</span><span class="n">mArray</span> <span class="nl">addObject</span><span class="p">:[</span><span class="bp">NSMutableArray</span> <span class="n">array</span><span class="p">]];</span>
-        <span class="p">}</span>
-        <span class="p">[[</span><span class="n">mArray</span> <span class="nl">objectAtIndex</span><span class="p">:[</span><span class="n">mArray</span> <span class="n">count</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">obj</span><span class="p">];</span>
-    <span class="p">}];</span>
-    <span class="k">return</span> <span class="n">mArray</span><span class="p">;</span>
-<span class="p">}</span>
+
+-(NSArray *)arrayOfArraysWithColumnWidth:(NSUInteger)width
+{
+    NSAssert(width &gt; 0, @"width need to be 1 or greater");
+
+    NSMutableArray *mArray =[NSMutableArray array];
+    [self enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        if (idx % width == 0) {
+            [mArray addObject:[NSMutableArray array]];
+        }
+        [[mArray objectAtIndex:[mArray count]-1] addObject:obj];
+    }];
+    return mArray;
+}
 
 
-<span class="k">@end</span></code></pre></div>
-
+@end
+</code></pre>
 
 <h3>NSArray+RandomUtils</h3>
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="k">@interface</span> <span class="bp">NSArray</span> <span class="nl">(RandomUtils)</span>
-<span class="p">-(</span><span class="kt">id</span><span class="p">)</span><span class="nf">randomElement</span><span class="p">;</span>
+<pre><code class="objc">
+@interface NSArray (RandomUtils)
+-(id)randomElement;
 
-<span class="k">@end</span>
+@end
 
-<span class="k">@interface</span> <span class="bp">NSMutableArray</span> <span class="nl">(RandomUtils)</span>
-<span class="p">-(</span><span class="kt">void</span><span class="p">)</span><span class="nf">shuffle</span><span class="p">;</span>
-<span class="k">@end</span></code></pre></div>
+@interface NSMutableArray (RandomUtils)
+-(void)shuffle;
+@end
+</code></pre>
 
+<pre><code class="objc">#import "NSArray+RandomUtils.h"
 
+@implementation NSArray (RandomUtils)
 
+-(id)randomElement
+{
+  if ([self count] &lt; 1) return nil;
+  int randomIndex = arc4random_uniform((int)[self count]);
+  return [self objectAtIndex:randomIndex];
+}
 
-<div class="highlight"><pre><code class="language-objc" data-lang="objc"><span class="cp">#import &quot;NSArray+RandomUtils.h&quot;</span>
-
-<span class="k">@implementation</span> <span class="bp">NSArray</span> <span class="nl">(RandomUtils)</span>
-
-<span class="p">-(</span><span class="kt">id</span><span class="p">)</span><span class="nf">randomElement</span>
-<span class="p">{</span>
-  <span class="k">if</span> <span class="p">([</span><span class="nb">self</span> <span class="n">count</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">return</span> <span class="nb">nil</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">randomIndex</span> <span class="o">=</span> <span class="n">arc4random_uniform</span><span class="p">((</span><span class="kt">int</span><span class="p">)[</span><span class="nb">self</span> <span class="n">count</span><span class="p">]);</span>
-  <span class="k">return</span> <span class="p">[</span><span class="nb">self</span> <span class="nl">objectAtIndex</span><span class="p">:</span><span class="n">randomIndex</span><span class="p">];</span>
-<span class="p">}</span>
-
-<span class="k">@end</span></code></pre></div>
-
+@end
+</code></pre>
 
 <hr />
 

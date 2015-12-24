@@ -14,16 +14,16 @@ But now I found a situation, where it makes much more sense to have a veridic li
 I wrote a Category method on NSArray, that allows the user, to filter the array by blocks and create a dictionary with given keys.
 
 
-{% highlight objc %}
+``` objc
 
 - (NSDictionary *) dictionaryByFilteringWithBlocks:(NSArray *)filterBlocks
                                            forKeys:(NSArray *)keys
-{% endhighlight %}
+```
 <!--break-->
 
 And it is used like  
 
-{% highlight objc %}
+``` objc
 
 NSArray *blocks = [NSArray arrayWithObjects:
                 ^BOOL(id element) {return [element hasPrefix:@"a"];},
@@ -33,7 +33,7 @@ NSArray *blocks = [NSArray arrayWithObjects:
 
 NSArray *keys = [NSArray arrayWithObjects:@"a",@"c", @"z", nil];
 NSDictionary *dict = [array dictionaryByFilteringWithBlocks:blocks forKeys:keys];
-{% endhighlight %}
+```
 
 it works as expected, but has two flaws:  
 
@@ -43,7 +43,7 @@ it works as expected, but has two flaws:
 
 I think, that is reason enough to give veriadic methods a try — and here we go:  
 
-{% highlight objc %}
+``` objc
 - (NSDictionary *) dictionaryByFilteringWithBlocksAndKeys:(BOOL (^)(id element))firstBlock, id firstKey,... NS_REQUIRES_NIL_TERMINATION;
 
 -(NSDictionary *)dictionaryByFilteringWithBlocksAndKeys:(TestBlock)firstBlock, id firstKey,...
@@ -83,20 +83,20 @@ I think, that is reason enough to give veriadic methods a try — and here we go
     [blocks release];
     return  results;
 }
-{% endhighlight %}
-
-{% highlight objc %}
+```
+``` objc
 NSArray *array = [NSArray arrayWithObjects:@"a", @"aa", @"ab", @"cc", @"cd", @"dd", nil];
 NSDictionary *dict = [array dictionaryByFilteringWithBlocksAndKeys:
                 ^BOOL(id element) {return [element hasPrefix:@"a"];},@"a",
                 ^BOOL(id element) {return [element hasPrefix:@"c"];},@"c",
              nil];
 NSLog(@"%@", dict);
-{% endhighlight %}
+```
 
 result:
 
-{% highlight objc %}
+``` objc
+
 {
     a =     (
         a,
@@ -108,6 +108,6 @@ result:
         cd
     );
 }
-{% endhighlight %}
+```
 
 [1]: http://cocoawithlove.com/2009/05/variable-argument-lists-in-cocoa.html

@@ -75,7 +75,7 @@ I want to demonstrate a simple UITableView that has a twist: every section gets
 it objetcs to display from another source.
 
 
-{% highlight objc %}
+``` objc
 #import <Foundation/Foundation.h>
 
 @protocol OFADataFetcher <NSObject>
@@ -86,32 +86,32 @@ it objetcs to display from another source.
 - (NSArray *)objects;
 @end
 
-{% endhighlight %}
+```
 
 The `OFADataFetcher` protocol describes the contract a data fetcher object must fulfill
 to be usable by the data source.
-{% highlight objc %}
+``` objc
 - (void)fetchSuccess:(void (^)(void))success;
-{% endhighlight %}
+```
 
 This method is called by the data source. The block is a call back mechanism. We could
  use dlegation instead.
 
- {% highlight objc %}
+ ``` objc
  - (void)fetchedData:(id)obj onDataFetcher:(id<OFADataFetcher>)dataFetcher;
- {% endhighlight %}
+ ```
  Called in case of successful fetching.
 
- {% highlight objc %}
+ ``` objc
  - (void)fetchingDataFaildWithError:(NSError *)error onDataFetcher:(id<OFADataFetcher>)dataFetcher;
- {% endhighlight %}
+ ```
  called if fetching failed.
 
 
 As I said, I want to have different sources for the different sections of the
 table view, but it can have only one data source. We have to have a tree of sources.
 
-{% highlight objc %}
+``` objc
 #import <UIKit/UIKit.h>
 #import "OFASectionDataSource.h"
 @protocol OFASectionDataSource;
@@ -128,17 +128,17 @@ table view, but it can have only one data source. We have to have a tree of sour
 - (NSArray *)selectedObjects;
 @end
 
-{% endhighlight %}
+```
 
 ----
 
-{% highlight objc %}
+``` objc
 - (void)addSectionDataSource:(id<OFASectionDataSource>)sectionDataSource;
-{% endhighlight %}
+```
 allows us to add a data source that fulfills `OFASectionDataSource` for every section.  
 
 
-{% highlight objc %}
+``` objc
 #import "OFASectionedTableViewDataSource.h"
 
 @interface OFASectionedTableViewDataSource ()
@@ -315,14 +315,14 @@ allows us to add a data source that fulfills `OFASectionDataSource` for every se
     }
 
     @end
-{% endhighlight %}
+```
 
 So it basically proxies any method call to a section data source chosen by the indexPath's section.
 
 
 A section data source implements the `OFASectionDataSource` protocol or might subclass the `OFASectionDataSource` class.
 
-{% highlight objc %}
+``` objc
 @protocol OFASectionDataSource <UITableViewDataSource, UITableViewDelegate>
 - (void)setObjectsFromArray:(NSArray *)array;
 - (void)addObjectsFromArray:(NSArray *)array;
@@ -357,10 +357,10 @@ configureCell:(void (^)(id obj, UITableViewCell *cell, NSIndexPath *indexPath, U
 
 @end
 
-{% endhighlight %}
+```
 
 
-{% highlight objc %}
+``` objc
 #import "OFASectionDataSource.h"
 #import "OFADataFetcher.h"
 
@@ -486,7 +486,7 @@ configureCell:(void (^)(id obj, UITableViewCell *cell, NSIndexPath *indexPath, U
 
     @end
 
-{% endhighlight %}
+```
 
 From an architectual point of view we are done.
 
@@ -495,7 +495,7 @@ But the fun justs starts:
 Let's say we want to have a section where I can select 1 to 4 rows.
 
 
-{% highlight objc %}
+``` objc
 #import "OFASectionDataSource.h"
 
 @interface OFAMinMaxSelectionSectionDataSource : OFASectionDataSource
@@ -512,9 +512,9 @@ Let's say we want to have a section where I can select 1 to 4 rows.
                       dataFetcher:(id<OFADataFetcher>)dataFetcher
                     configureCell:(void (^)(id object, UITableViewCell *cell, NSIndexPath *indexPath, UITableView *tableView))configureCell;
 @end
-{% endhighlight %}
+```
 
-{% highlight objc %}
+``` objc
 #import "OFAMinMaxSelectionSectionDataSource.h"
 
 @interface OFAMinMaxSelectionSectionDataSource ()
@@ -582,11 +582,11 @@ configureCell:(void (^)(id object, UITableViewCell *cell, NSIndexPath *indexPath
     }
 
     @end
-{% endhighlight %}
+```
 
 And we want the data source to fetch a file from the file system and break up it's lines
 
-{% highlight objc %}
+``` objc
 #import <Foundation/Foundation.h>
 @import OFADelegateDataSource;
 
@@ -595,9 +595,9 @@ And we want the data source to fetch a file from the file system and break up it
 
 -(instancetype)initWithFilePath:(NSString *)path;
 @end
-{% endhighlight %}
+```
 
-{% highlight objc %}
+``` objc
 #import "FileDataFetcher.h"
 
 
@@ -644,7 +644,7 @@ And we want the data source to fetch a file from the file system and break up it
   }
 
   @end
-{% endhighlight %}
+```
 
 
 And now we stick it together. Note that the data source also implements the delegate,
@@ -655,7 +655,7 @@ corresponding object the VC  by using a block
 
 In VC's `viewDidLoad:`
 
-{% highlight objc %}
+``` objc
 FileDataFetcher *lineDataFetcher = [[FileDataFetcher alloc] initWithFilePath:[[NSBundle mainBundle] pathForResource:@"File2" ofType:@"txt"]];
 
 
@@ -682,13 +682,13 @@ OFASectionDataSource *lineDataSource = [[OFAMinMaxSelectionSectionDataSource all
     [ds addSectionDataSource:lineDataSource];
     ds;
   });
-{% endhighlight %}
+```
 
 That's all.
 
 How about exchanging the text with photos form flickr?
 
-{% highlight objc %}
+``` objc
 #import "FlickerPhotoFetcher.h"
 #import "FlickrKit.h"
 
@@ -784,9 +784,9 @@ How about exchanging the text with photos form flickr?
 }
 
 @end
-{% endhighlight %}
+```
 
-{% highlight objc %}
+``` objc
 OFASectionDataSource *flickrSectionDataSource = [[OFAMinMaxSelectionSectionDataSource alloc] initWithTableView:self.tableView
                                                                                                      cellClass:[UITableViewCell class]
                                                                                                 cellIdentifier:@"thirdSectionCell"
@@ -812,7 +812,7 @@ flickrSectionDataSource.cellHeight = ^(NSIndexPath *ip, UIImage *obj){
   return obj.size.height / factor;
 };
 
-{% endhighlight %}
+```
 
 
 [apple]: http://developer.apple.com
